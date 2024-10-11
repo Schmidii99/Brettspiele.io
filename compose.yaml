@@ -1,0 +1,42 @@
+
+services:
+  redis:
+    image: 'redislabs/redismod'
+    ports:
+      - '6379:6379'
+  frontend1:
+    restart: on-failure
+    build: ./frontend
+    hostname: frontend1
+    ports:
+      - '81:3000'
+  frontend2:
+    restart: on-failure
+    build: ./frontend
+    hostname: frontend2
+    ports:
+      - '82:3000'
+  backend1:
+    restart: on-failure
+    build: ./backend
+    hostname: backend1
+    ports:
+      - '83:3000'
+  backend2:
+    restart: on-failure
+    build: ./backend
+    hostname: backend2
+    ports:
+      - '84:3000'
+  nginx:
+    build: ./nginx
+    ports:
+    - '80:80'
+    - '8080:8080'
+    depends_on:
+    - frontend1
+    - frontend2
+    - backend1
+    - backend2
+
+

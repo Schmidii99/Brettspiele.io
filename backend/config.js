@@ -1,0 +1,3 @@
+const FRONTEND_SERVER = "*";
+
+exports.FRONTEND_SERVER = FRONTEND_SERVER;
