@@ -6,6 +6,10 @@ SESSIONAME="brettspiele_io"
 tmux kill-session -t $SESSIONAME
 tmux new -s $SESSIONAME -d
 
+# redis
+tmux send-keys -t $SESSIONAME:0 "docker compose up redis --no-deps" ENTER
+tmux splitw -h -t $SESSIONAME
+
 # backend
 tmux send-keys -t $SESSIONAME:0 "cd backend" ENTER
 tmux send-keys -t $SESSIONAME:0 "node index.js" ENTER
