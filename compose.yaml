@@ -7,7 +7,7 @@ services:
     volumes:
       - ./redis-data:/data
     environment:
-      - REDIS_ARGS=--appendonly yes
+      REDIS_ARGS: '--appendonly yes'
   frontend1:
     restart: on-failure
     build: ./frontend
@@ -26,12 +26,16 @@ services:
     hostname: backend1
     ports:
       - '83:3000'
+    environment:
+      REDIS_URL: 'redis://192.168.235.46:6379'
   backend2:
     restart: on-failure
     build: ./backend
     hostname: backend2
     ports:
       - '84:3000'
+    environment:
+      REDIS_URL: 'redis://192.168.235.46:6379'
   nginx:
     build: ./nginx
     ports:
