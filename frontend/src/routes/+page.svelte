@@ -1,17 +1,11 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { io } from "socket.io-client";
-    import { API_URL } from "$lib/config";
+    import { openSocket } from "$lib/socketManager";
 
     let recievedMessage: any = null;
 
     onMount(() => {
-        const socket = io(API_URL);
 
-        socket.on("message", (message) => {
-            recievedMessage = message;
-            socket.emit("message", "Hello from the frontend!");
-        })
     })
 </script>
 

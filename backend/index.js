@@ -1,4 +1,4 @@
-const { FRONTEND_SERVER } = require('./config');
+const { FRONTEND_SERVER, SERVER_PORT } = require('./config');
 
 const express = require('express');
 const app = express();
@@ -20,15 +20,32 @@ const io = new Server(server, {
 });
 
 io.on('connection', (socket) => {
-  console.log('a user connected - sending message...');
-  // handle messages from frontend
-  socket.on("message", (message) => {
-    console.log("Recieved message: " + message);
-  });
+  console.log('a user connected - checking headers...');
+
+  if (socket.handshake.headers['x-session'] == null) {
+    // close socket if session header is not set
+    socket.disconnect();
+    console.log('Session header invalid! Client disconnected!');
+  } else {
+      // validate session
+      const sessionKey = socket.handshake.headers['x-session'];
+      if (sessionKey.length != 36 || sessionKey.split("-").length != 5) {
+        socket.disconnect();
+        console.log('Session header invalid! Client disconnected!');
+      }
+  }
+  console.log('Session valid');
+
   // send message to frontend
   socket.emit('message', 'Welcome from the backend!');
 });
 
-server.listen(3000, () => {
-  console.log('Server listening on port 3000');
+server.listen(SERVER_PORT, () => {
+  console.log('Server listening on port ' + SERVER_PORT);
 });
+
+function handleMessage(message) {
+  if (message.action != null) {
+    console.log('action: ' + message.action);
+  }
+}
