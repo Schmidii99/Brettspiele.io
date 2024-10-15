@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  import TheWelcome from '../components/TheWelcome.vue'
   import {openSocket} from "@/lib/socketManager";
   import {onMounted} from "vue";
 
@@ -15,7 +14,5 @@
 </script>
 
 <template>
-  <main>
-    <TheWelcome />
-  </main>
+  <div><span>Home View</span></div>
 </template>
