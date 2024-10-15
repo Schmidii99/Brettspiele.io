@@ -13,10 +13,11 @@ tmux splitw -h -t $SESSIONAME
 # backend
 tmux send-keys -t $SESSIONAME:0 "cd backend" ENTER
 tmux send-keys -t $SESSIONAME:0 "export REDIS_URL='redis://localhost:6379'" ENTER
-tmux send-keys -t $SESSIONAME:0 "sleep 5" ENTER
+tmux send-keys -t $SESSIONAME:0 "sleep 2" ENTER
 tmux send-keys -t $SESSIONAME:0 "node index.js" ENTER
 
 tmux splitw -h -t $SESSIONAME
+tmux select-layout -t $SESSIONAME even-horizontal
 
 # frontend
 tmux send-keys -t $SESSIONAME:0 "cd frontend" ENTER
