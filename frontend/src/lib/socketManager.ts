@@ -1,0 +1,29 @@
+import {io} from "socket.io-client";
+import {SOCKET_SERVER_URL} from "@/config";
+import {useSessionStore} from "@/stores/sessionStore";
+
+export function openSocket(onConnect = () => {}, onDisconnect = () => {}, onGameStateUpdate = () => {}) {
+  const sessionStore = useSessionStore();
+
+  const socket = io((SOCKET_SERVER_URL), {
+    extraHeaders: {
+      "x-session": sessionStore.session,
+    }
+  });
+
+  socket.on("connect", () => {
+    console.log("Websocket successfully connected!");
+    onConnect();
+  });
+  socket.on("disconnect", () => {
+    console.log("Websocket disconnected!");
+    onDisconnect();
+  });
+  socket.on("gameStateUpdate", () => {
+    onGameStateUpdate();
+  });
+
+  return socket;
+}
+
+
