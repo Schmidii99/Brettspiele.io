@@ -14,5 +14,5 @@
 </script>
 
 <template>
-  <div><span>Home View</span></div>
+  <div><span class="underline text-red-400">Home View</span></div>
 </template>
