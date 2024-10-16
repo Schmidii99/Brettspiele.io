@@ -1,25 +1,9 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import Navbar from "@/components/Navbar.vue";
 </script>
 
 <template>
-  <header>
-    <div>
-
-      <div>
-        <span>Main</span>
-      </div>
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/tictactoe/123">Tac Tac Toe</RouterLink>
-      </nav>
-    </div>
-  </header>
-
+  <Navbar />
   <RouterView />
 </template>
-
-<style scoped>
-
-</style>

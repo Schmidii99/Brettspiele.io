@@ -6,13 +6,18 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
+      name: 'Home',
       component: HomeView,
     },
     {
       path: '/tictactoe/:gameid',
-      name: 'tictactoe',
-      component: () => import('../views/TicTacToeView.vue'),
+      name: 'Tic Tac Toe Game View',
+      component: () => import('../views/tictactoe/GameView.vue'),
+    },
+    {
+      path: '/tictactoe/',
+      name: 'Tic Tac Toe',
+      component: () => import('../views/tictactoe/TicTacToeView.vue'),
     },
   ],
 })
