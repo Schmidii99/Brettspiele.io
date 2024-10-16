@@ -8,7 +8,7 @@
       <NavbarElement class="p-2 hover:underline"
                      :link="route.path.split(':')[0]"
                      :title="route.name"
-                     v-for="route in router.getRoutes().filter((r) => r.path.indexOf(':') == -1)"
+                     v-for="route in router.getRoutes().filter((r) => r.path.indexOf(':') == -1).sort((a, b) => a.name.localeCompare(b.name))"
       />
   </header>
 </template>
