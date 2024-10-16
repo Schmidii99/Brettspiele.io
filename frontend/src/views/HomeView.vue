@@ -1,17 +1,4 @@
 <script setup lang="ts">
-  import {openSocket} from "@/lib/socketManager";
-  import {onMounted, onUnmounted} from "vue";
-
-  let socket;
-
-  onMounted(() => {
-    socket = openSocket(onConnect);
-  });
-
-  onUnmounted(() => {
-    socket.disconnect();
-  })
-
   function onConnect() {
     console.log("I am the homeview")
   }

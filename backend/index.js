@@ -36,26 +36,31 @@ async function main() {
       // close socket if session header is not set
       socket.disconnect();
       console.log('Session header invalid! Client disconnected!');
+      return;
     } else {
       // validate session
       const sessionKey = socket.handshake.headers['x-session'];
       if (sessionKey.length !== 36 || sessionKey.split("-").length !== 5) {
         socket.disconnect();
         console.log('Session header invalid! Client disconnected!');
+        return;
       }
     }
     console.log('Session valid');
 
-    const resp = parseInt(await redisClient.get('numVisits') ?? '1');
-    console.log(resp);
-
-    await redisClient.set("numVisits", (resp + 1))
-    // send message to frontend
-    socket.emit('message', 'Welcome from the backend!');
+    // register events
+    socket.on("gameInfo", processGameInfo);
   });
 
   // start express
   server.listen(SERVER_PORT, () => {
     console.log('Server listening on port ' + SERVER_PORT);
   });
+}
+
+async function processGameInfo(info) {
+  if (info.gameType == null || info.gameId == null)
+    return;
+
+
 }
