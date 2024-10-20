@@ -5,7 +5,7 @@
 </script>
 
 <template>
-  <RouterLink :to="props.link">
+  <RouterLink :to="props.link || '/'">
     {{props.title}}
   </RouterLink>
 </template>

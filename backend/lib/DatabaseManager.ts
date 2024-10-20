@@ -1,9 +1,8 @@
 import { createClient } from "redis";
 import { getNewGame } from "./GameManager.ts";
-import process from "node:process";
 
 export const redisClient = createClient({
-  url: process.env.REDIS_URL ?? "redis://localhost:6379",
+  url: Deno.env.get("REDIS_URL") ?? "redis://localhost:6379",
   socket: {
     connectTimeout: 50000,
   },

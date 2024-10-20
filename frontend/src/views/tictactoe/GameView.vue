@@ -14,7 +14,7 @@
   });
 
   onUnmounted(() => {
-    socket.disconnect();
+    socket?.disconnect();
   });
 
   function afterConnect() {

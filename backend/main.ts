@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.220.1/http/server.ts";
-import { Server } from "https://deno.land/x/socket_io@0.2.0/mod.ts";
+import { serve } from "http_server";
+import { Server } from "socket_io";
 import { FRONTEND_SERVER } from "./config.ts";
 import { createGame, getGame, redisClient } from "./lib/DatabaseManager.ts";
 
