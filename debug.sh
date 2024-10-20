@@ -10,11 +10,11 @@ tmux new -s $SESSIONAME -d
 tmux send-keys -t $SESSIONAME:0 "docker compose up redis --no-deps" ENTER
 tmux splitw -h -t $SESSIONAME
 
-# backend
+# backend2
 tmux send-keys -t $SESSIONAME:0 "cd backend" ENTER
 tmux send-keys -t $SESSIONAME:0 "export REDIS_URL='redis://localhost:6379'" ENTER
 tmux send-keys -t $SESSIONAME:0 "sleep 2" ENTER
-tmux send-keys -t $SESSIONAME:0 "node index.js" ENTER
+tmux send-keys -t $SESSIONAME:0 "deno task build" ENTER
 
 tmux splitw -h -t $SESSIONAME
 tmux select-layout -t $SESSIONAME even-horizontal
