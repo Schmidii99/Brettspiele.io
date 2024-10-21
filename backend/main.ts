@@ -1,11 +1,16 @@
 import { serve } from "http_server";
 import { Server } from "socket_io";
-import { FRONTEND_SERVER } from "./config.ts";
+import { FRONTEND_SERVER, SERVER_PORT } from "./config.ts";
 import { createGame, getGame, redisClient } from "./lib/DatabaseManager.ts";
+import { setupLogger } from "./lib/LogManager.ts";
+import * as log from "log";
 
 main();
 
 async function main() {
+  // init logging
+  setupLogger();
+
   // init redis
   // make a connection to the local instance of redis
   await redisClient.connect();
@@ -19,30 +24,22 @@ async function main() {
 
   // handle socket connection
   io.on("connection", (socket) => {
-    console.log("a user connected - checking headers...");
-
-    if (socket.handshake.headers.get("x-session") == null) {
-      // close socket if session header is not set
+    const sessionKey: string | null = socket.handshake.headers.get("x-session")!;
+    if (sessionKey == null || sessionKey.length !== 36 || sessionKey.split("-").length !== 5) {
+      // close socket if session header is not valid
       socket.disconnect();
-      console.log("Session header invalid! Client disconnected!");
+      log.warn("User connected with invalid header", { header: sessionKey});
       return;
-    } else {
-      // validate session
-      const sessionKey = socket.handshake.headers.get("x-session")!;
-      if (sessionKey.length !== 36 || sessionKey.split("-").length !== 5) {
-        socket.disconnect();
-        console.log("Session header invalid! Client disconnected!");
-        return;
-      }
     }
-    console.log("Session valid");
+
+    log.info("User successfully connected!");
 
     // register events
     socket.on("gameInfo", processGameInfo);
   });
 
   await serve(io.handler(), {
-    port: 8080,
+    port: SERVER_PORT,
   });
 }
 
