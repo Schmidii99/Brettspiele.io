@@ -1,14 +1,16 @@
+export type Game = {
+  players: { [session: string]: "connected" | "disconnected" };
+  gameState: {
+    gameStatus: "lobby" | "running" | "ended";
+    // deno-lint-ignore no-explicit-any
+    state: any;
+  };
+  chat: Array<string>;
+}
+
 export function getNewGame(gameType: string) {
-  const baseGame: {
-    players: Array<string>;
-    gameState: {
-      gameStatus: "lobby" | "running" | "ended";
-      // deno-lint-ignore no-explicit-any
-      state: any;
-    };
-    chat: Array<string>;
-  } = {
-    players: [],
+  const baseGame: Game = {
+    players: {},
     gameState: {
       gameStatus: "lobby",
       state: {},
