@@ -23,6 +23,7 @@ export async function addPlayer(gameType: string, gameId: string, session: strin
   await redisClient.json.set(`${gameType}:${gameId}`, `$.players.${session}`, "connected");
   // add chat message
   await redisClient.json.arrAppend(`${gameType}:${gameId}`, `$.chat`, "A player has joined the game.");
+  await redisClient.publish(`${gameType}:${gameId}:chat`, "A player has joined the game.");
   log.info("Added player to game.");
 }
 
@@ -30,5 +31,6 @@ export async function disconnectPlayer(gameType: string, gameId: string, session
   await redisClient.json.set(`${gameType}:${gameId}`, `$.players.${session}`, "disconnected");
   // add chat message
   await redisClient.json.arrAppend(`${gameType}:${gameId}`, `$.chat`, "A player has left the game.");
+  await redisClient.publish(`${gameType}:${gameId}:chat`, "A player has left the game.");
   log.info("Removed player from game.");
 }

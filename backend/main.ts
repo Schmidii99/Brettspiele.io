@@ -1,7 +1,7 @@
 import { serve } from "http_server";
 import { Server, type Socket } from "socket_io";
 import { FRONTEND_SERVER, SERVER_PORT, SESSION_HEADER } from "./config.ts";
-import { addPlayer, createGame, disconnectPlayer, getGame, reconnectPlayer, redisClient } from "./lib/DatabaseManager.ts";
+import { addPlayer, createGame, disconnectPlayer, getGame, redisClient } from "./lib/DatabaseManager.ts";
 import { setupLogger } from "./lib/LogManager.ts";
 import * as log from "log";
 
@@ -67,12 +67,20 @@ async function processGameInfo(
     return;
   }
 
+  // register subscriber clientand events
+  const subscriber: any = redisClient.duplicate();
+  subscriber.connect();
+
+  await subscriber.subscribe(`${info.gameType}:${info.gameId}:chat`, (msg: string, _channel: string) => {processChatChange(msg, socket)});
+  await subscriber.subscribe(`${info.gameType}:${info.gameId}:gamestate`, (msg: string, _channel: string) => {processGameStateChange(msg, socket)});
+  
   // check if game is not full
   if (Object.keys(game.players).length + 1 <= 2) {
     await addPlayer(info.gameType, info.gameId, session);
     socket.emit("playerType", "player");
     socket.on("disconnect", async () => {
       await disconnectPlayer(info.gameType, info.gameId, session);
+      subscriber.quit();
     });
   } else {
     socket.emit("playerType", "spectator");
@@ -86,5 +94,15 @@ async function processGameInfo(
           log.info("Start game");
         }
     }
-  }
+  } 
+}
+
+// subscribe event from redis db
+async function processChatChange(msg: string, socket: Socket) {
+  await socket.emit("chatUpdate", msg);
+}
+
+// subscribe event from redis db
+async function processGameStateChange(msg: string, socket: Socket) {
+  await socket.emit("gameStateUpdate", msg);
 }
