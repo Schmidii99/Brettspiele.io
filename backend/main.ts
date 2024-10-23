@@ -75,7 +75,7 @@ async function processGameInfo(
   await subscriber.subscribe(`${info.gameType}:${info.gameId}:gamestate`, (msg: string, _channel: string) => {processGameStateChange(msg, socket)});
   
   // check if game is not full
-  if (Object.keys(game.players).length + 1 <= 2) {
+  if (Object.keys(game.players).length + 1 <= 2 || game.players[session] == "disconnected") {
     await addPlayer(info.gameType, info.gameId, session);
     socket.emit("playerType", "player");
     socket.on("disconnect", async () => {
@@ -83,6 +83,7 @@ async function processGameInfo(
       subscriber.quit();
     });
   } else {
+    log.info("Spectator joined");
     socket.emit("playerType", "spectator");
   }
 
