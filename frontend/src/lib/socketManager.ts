@@ -2,7 +2,7 @@ import {io} from "socket.io-client";
 import {SOCKET_SERVER_URL} from "@/config";
 import {useSessionStore} from "@/stores/sessionStore";
 
-export function openSocket(onConnect = () => {}, onDisconnect = () => {}, onGameStateUpdate = () => {}) {
+export function openSocket(onConnect = () => {}, onDisconnect = () => {}) {
   const sessionStore = useSessionStore();
 
   const socket = io((SOCKET_SERVER_URL), {
@@ -18,9 +18,6 @@ export function openSocket(onConnect = () => {}, onDisconnect = () => {}, onGame
   socket.on("disconnect", () => {
     console.log("Websocket disconnected!");
     onDisconnect();
-  });
-  socket.on("gameStateUpdate", () => {
-    onGameStateUpdate();
   });
 
   return socket;
