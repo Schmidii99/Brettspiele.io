@@ -4,6 +4,7 @@ import { FRONTEND_SERVER, SERVER_PORT, SESSION_HEADER } from "./config.ts";
 import { addPlayer, createGame, disconnectPlayer, getGame, redisClient } from "./lib/DatabaseManager.ts";
 import { setupLogger } from "./lib/LogManager.ts";
 import * as log from "log";
+import { getRandomInt } from "./lib/helper.ts";
 
 main();
 
@@ -74,17 +75,44 @@ async function processGameInfo(
   await subscriber.subscribe(`${info.gameType}:${info.gameId}:chat`, (msg: string, _channel: string) => {processChatChange(msg, socket)});
   await subscriber.subscribe(`${info.gameType}:${info.gameId}:gamestate`, (msg: string, _channel: string) => {processGameStateChange(msg, socket)});
   
-  // check if game is not full
-  if (Object.keys(game.players).length + 1 <= 2 || game.players[session] == "disconnected") {
+
+  if (Object.keys(game.players).length + 1 <= 2 || (game.players[session] as {status: string} || {status: ""}).status == "disconnected") {
     await addPlayer(info.gameType, info.gameId, session);
-    socket.emit("playerType", "player");
+
+    let playerSymbol: string = "";
+    // evaluate player symbol
+    // check if player reconnected
+    // else choose player symbol based on other player or choose random
+    if (game.players[session] != null || (game.players[session] as {status: string} || {status: ""}).status == "disconnected") {
+      // player is reconnecting - get symobol from db
+      playerSymbol = await redisClient.json.get(`${info.gameType}:${info.gameId}`, {path: `$.players.${session}.symbol`});
+      log.info("Got Symbol from db: " + playerSymbol);
+    } else if (Object.keys(game.players).length == 0) {
+      // first player to join
+      playerSymbol = getRandomInt(2) == 0 ? "X" : "O";
+      log.debug("Set random symbol: " + playerSymbol);
+      // set player symbol in db
+      await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.players.${session}.symbol`, playerSymbol);
+    } else {
+      // second player to join
+      const opponent = await redisClient.json.get(`${info.gameType}:${info.gameId}`, {path: `$.players`});
+      // choose playersymbol based on other player
+      playerSymbol = (Object.values(opponent)[0] as {symbol: "X" | "O"}).symbol == "X" ? "O" : "X";
+      await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.players.${session}.symbol`, playerSymbol);
+    }
+
+    // weird glitch where playersymbol is a array
+    if (typeof(playerSymbol) == "object")
+      playerSymbol = playerSymbol[0];
+
+    socket.emit("playerType", ["player", playerSymbol]);
     socket.on("disconnect", async () => {
       await disconnectPlayer(info.gameType, info.gameId, session);
       subscriber.quit();
     });
   } else {
     log.info("Spectator joined");
-    socket.emit("playerType", "spectator");
+    socket.emit("playerType", ["spectator"]);
   }
 
   if (!game.players[session]) {
@@ -92,7 +120,8 @@ async function processGameInfo(
     switch (info.gameType) {
       case "tictactoe":
         if (Object.keys(game.players).length + 1 == 2) {
-          log.info("Start game");
+          // publish game state to all players
+          await redisClient.publish(`${info.gameType}:${info.gameId}:gamestate`, JSON.stringify(game.gameState.state));
         }
     }
   } 
@@ -105,5 +134,5 @@ async function processChatChange(msg: string, socket: Socket) {
 
 // subscribe event from redis db
 async function processGameStateChange(msg: string, socket: Socket) {
-  await socket.emit("gameStateUpdate", msg);
+  await socket.emit("gameStateUpdate", JSON.parse(msg));
 }

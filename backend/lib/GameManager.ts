@@ -1,5 +1,5 @@
 export type Game = {
-  players: { [session: string]: "connected" | "disconnected" };
+  players: { [session: string]: {status: "connected" | "disconnected"} };
   gameState: {
     gameStatus: "lobby" | "running" | "ended";
     // deno-lint-ignore no-explicit-any

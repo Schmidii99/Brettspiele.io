@@ -20,7 +20,13 @@ export async function createGame(gameType: string, gameId: string) {
 }
 
 export async function addPlayer(gameType: string, gameId: string, session: string): Promise<void> {
-  await redisClient.json.set(`${gameType}:${gameId}`, `$.players.${session}`, "connected");
+  let game: Game | null = await getGame(gameType, gameId);
+  if (game == null) { return; }
+  if (game.players[session] == null) {
+    // create session object if not exists
+    await redisClient.json.set(`${gameType}:${gameId}`, `$.players.${session}`, {});
+  }
+  await redisClient.json.set(`${gameType}:${gameId}`, `$.players.${session}.status`, "connected");
   // remove TTL from key
   await redisClient.persist(`${gameType}:${gameId}`);
   // add chat message
@@ -30,13 +36,14 @@ export async function addPlayer(gameType: string, gameId: string, session: strin
 }
 
 export async function disconnectPlayer(gameType: string, gameId: string, session: string): Promise<void> {
-  await redisClient.json.set(`${gameType}:${gameId}`, `$.players.${session}`, "disconnected");
-  const game: Game | null = (await getGame(gameType, gameId));
+  await redisClient.json.set(`${gameType}:${gameId}`, `$.players.${session}.status`, "disconnected");
+
+  const game: Game | null = await getGame(gameType, gameId);
   if (game != null) {
     let allPlayersDisconnected = true;
     // check if the status of all players is disconnected
-    Object.values(game.players).forEach((status: string) => {
-      if (status == "connected") {
+    Object.values(game.players).forEach((player: {status: "connected" | "disconnected"}) => {
+      if (player.status == "connected") {
         allPlayersDisconnected = false;
       }
     });

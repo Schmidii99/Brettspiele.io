@@ -8,9 +8,7 @@
 
   let socket: null | Socket;
   let route = useRoute();
-  // this is correct !!! : let isRunning = ref(false);
-  // this is temporary : 
-  let isRunning = ref(true);
+  let isRunning = ref(false);
 
   let board: Array<Array<number>> = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
   let isSpectator = ref(false);
