@@ -1,7 +1,7 @@
 import { createClient } from "redis";
 import { getNewGame, type Game } from "./GameManager.ts";
 import * as log from "log";
-import { REDIS_URL } from "../config.ts";
+import { GAME_TTL_AFTER_DISCONNECT, REDIS_URL } from "../config.ts";
 
 export const redisClient = createClient({
   url: REDIS_URL,
@@ -21,6 +21,8 @@ export async function createGame(gameType: string, gameId: string) {
 
 export async function addPlayer(gameType: string, gameId: string, session: string): Promise<void> {
   await redisClient.json.set(`${gameType}:${gameId}`, `$.players.${session}`, "connected");
+  // remove TTL from key
+  await redisClient.persist(`${gameType}:${gameId}`);
   // add chat message
   await redisClient.json.arrAppend(`${gameType}:${gameId}`, `$.chat`, "A player has joined the game.");
   await redisClient.publish(`${gameType}:${gameId}:chat`, "A player has joined the game.");
@@ -29,6 +31,20 @@ export async function addPlayer(gameType: string, gameId: string, session: strin
 
 export async function disconnectPlayer(gameType: string, gameId: string, session: string): Promise<void> {
   await redisClient.json.set(`${gameType}:${gameId}`, `$.players.${session}`, "disconnected");
+  const game: Game | null = (await getGame(gameType, gameId));
+  if (game != null) {
+    let allPlayersDisconnected = true;
+    // check if the status of all players is disconnected
+    Object.values(game.players).forEach((status: string) => {
+      if (status == "connected") {
+        allPlayersDisconnected = false;
+      }
+    });
+    if (allPlayersDisconnected) {
+      await redisClient.expire(`${gameType}:${gameId}`, GAME_TTL_AFTER_DISCONNECT);
+    } 
+  }
+
   // add chat message
   await redisClient.json.arrAppend(`${gameType}:${gameId}`, `$.chat`, "A player has left the game.");
   await redisClient.publish(`${gameType}:${gameId}:chat`, "A player has left the game.");
