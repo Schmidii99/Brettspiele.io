@@ -74,8 +74,12 @@ async function processGameInfo(
 
   await subscriber.subscribe(`${info.gameType}:${info.gameId}:chat`, (msg: string, _channel: string) => {processChatChange(msg, socket)});
   await subscriber.subscribe(`${info.gameType}:${info.gameId}:gamestate`, (msg: string, _channel: string) => {processGameStateChange(msg, socket)});
-  
 
+  if (info.gameType === "tictactoe")
+    await initTicTacToe(info, socket, game, session, subscriber);
+}
+
+async function initTicTacToe(info: { gameType: string; gameId: string }, socket: Socket, game: any, session: string, subscriber: any): Promise<void> {
   if (Object.keys(game.players).length + 1 <= 2 || (game.players[session] as {status: string} || {status: ""}).status == "disconnected") {
     await addPlayer(info.gameType, info.gameId, session);
 
@@ -95,13 +99,26 @@ async function processGameInfo(
       await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.players.${session}.symbol`, playerSymbol);
     } else {
       // second player to join
-      const opponent = await redisClient.json.get(`${info.gameType}:${info.gameId}`, {path: `$.players`});
+      const allPlayers = await redisClient.json.get(`${info.gameType}:${info.gameId}`, {path: `$.players`});
       // choose playersymbol based on other player
-      playerSymbol = (Object.values(opponent)[0] as {symbol: "X" | "O"}).symbol == "X" ? "O" : "X";
+      let opponentSymbol = "";
+
+      // find opponent session and set his symbol
+      Object.values(allPlayers[0]).forEach((playerObj: any) => {
+        if (playerObj.symbol != undefined) {
+          opponentSymbol = playerObj.symbol;
+        }
+      });
+
+      playerSymbol = opponentSymbol == "X" ? "O" : "X";
+
       await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.players.${session}.symbol`, playerSymbol);
+      // set gamestate to running
+      await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.gameState.gameStatus`, "running");
+      game.gameState.gameStatus = "running";
     }
 
-    // weird glitch where playersymbol is a array
+    // weird glitch where playersymbol is a array (I think this does not happen anymore can prob. be removed)
     if (typeof(playerSymbol) == "object")
       playerSymbol = playerSymbol[0];
 
@@ -115,16 +132,10 @@ async function processGameInfo(
     socket.emit("playerType", ["spectator"]);
   }
 
-  if (!game.players[session]) {
-    // check if game needs to be started
-    switch (info.gameType) {
-      case "tictactoe":
-        if (Object.keys(game.players).length + 1 == 2) {
-          // publish game state to all players
-          await redisClient.publish(`${info.gameType}:${info.gameId}:gamestate`, JSON.stringify(game.gameState.state));
-        }
-    }
-  } 
+  if (game.gameState.gameStatus === "running") {
+    // publish game state to all players
+    await redisClient.publish(`${info.gameType}:${info.gameId}:gamestate`, JSON.stringify(game.gameState.state));
+  }
 }
 
 // subscribe event from redis db
