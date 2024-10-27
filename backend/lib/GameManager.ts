@@ -1,4 +1,5 @@
 export type Game = {
+  currentTurn: string;
   players: { [session: string]: {status: "connected" | "disconnected"} };
   gameState: {
     gameStatus: "lobby" | "running" | "ended";
@@ -10,6 +11,7 @@ export type Game = {
 
 export function getNewGame(gameType: string) {
   const baseGame: Game = {
+    currentTurn: "",
     players: {},
     gameState: {
       gameStatus: "lobby",

@@ -97,6 +97,10 @@ async function initTicTacToe(info: { gameType: string; gameId: string }, socket:
       log.debug("Set random symbol: " + playerSymbol);
       // set player symbol in db
       await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.players.${session}.symbol`, playerSymbol);
+      // check if this player starts the game!
+      if (playerSymbol == "X") {
+        await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.currentTurn`, session);
+      }
     } else {
       // second player to join
       const allPlayers = await redisClient.json.get(`${info.gameType}:${info.gameId}`, {path: `$.players`});
@@ -113,6 +117,10 @@ async function initTicTacToe(info: { gameType: string; gameId: string }, socket:
       playerSymbol = opponentSymbol == "X" ? "O" : "X";
 
       await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.players.${session}.symbol`, playerSymbol);
+      // check if this player starts the game!
+      if (playerSymbol == "X") {
+        await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.currentTurn`, session);
+      }
       // set gamestate to running
       await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.gameState.gameStatus`, "running");
       game.gameState.gameStatus = "running";
