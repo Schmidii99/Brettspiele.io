@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { onMounted, onUnmounted, ref } from "vue";
+  import { onMounted, onUnmounted, reactive, ref } from "vue";
   import { openSocket } from "@/lib/socketManager";
   import { copyToClipboard } from "@/lib/helper";
   import { Socket } from "socket.io-client";
@@ -10,9 +10,11 @@
   let route = useRoute();
   let isRunning = ref(false);
 
-  let board: Array<Array<number>> = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  let board = ref({state: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]});
   let isSpectator = ref(false);
   let playerSymbol = ref("");
+
+  let chat = ref([]);
 
   onMounted(() => {
     socket = openSocket(afterConnect);
@@ -43,11 +45,22 @@
 
   function gameStateUpdate(state: any) {
     isRunning.value = true;
+    console.log("Got gamestate update");
     // on a gameState Update, update the board
-    board = state;
+    board.value.state = state;
   }
 
   function getFullLink(): string { return window.location.href; }
+
+  function sendClick(x: number, y: number) {
+    if (isSpectator.value) return;
+
+    // client side prevention of clicking fields that are already filled
+    if (board.value.state[x][y] != 0) return;
+
+    // send click
+    socket?.emit("makeMove", { x: x, y: y });
+  }
 </script>
 
 <template>
@@ -69,8 +82,8 @@
       </div>
     </div>
     <div v-if="isRunning" class="flex w-full justify-center items-center flex-col">
-      <div v-for="row in board" class="w-full my-3 flex justify-center space-x-3">
-        <Field v-for="column in row"/>
+      <div v-for="(row, row_index) in board.state" class="w-full my-3 flex justify-center space-x-3">
+        <Field v-for="(column, column_index) in row" :value="column" @click="() => sendClick(row_index, column_index)"/>
       </div>
     </div>
   </div>
