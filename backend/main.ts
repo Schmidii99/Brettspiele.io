@@ -80,6 +80,7 @@ async function processGameInfo(
 }
 
 async function initTicTacToe(info: { gameType: string; gameId: string }, socket: Socket, game: any, session: string, subscriber: any): Promise<void> {
+  socket.on("makeMove", (args: {x: number, y: number}) => tictactoeMove(info, args.x, args.y, session));
   if (Object.keys(game.players).length + 1 <= 2 || (game.players[session] as {status: string} || {status: ""}).status == "disconnected") {
     await addPlayer(info.gameType, info.gameId, session);
 
@@ -154,4 +155,34 @@ async function processChatChange(msg: string, socket: Socket) {
 // subscribe event from redis db
 async function processGameStateChange(msg: string, socket: Socket) {
   await socket.emit("gameStateUpdate", JSON.parse(msg));
+}
+
+async function tictactoeMove(info: {gameType: string, gameId: string}, x: number, y: number, session: string) {
+  // get current game state
+  const game = await getGame(info.gameType, info.gameId);
+  if (game == null) { return; }
+  // check if player is allowed to make a move
+  if (game.currentTurn != session || game.gameState.gameStatus != "running") { return; }
+  // check board boundaries and for empty field
+  if (x > 2 || y > 2 || x < 0 || y < 0) {
+    log.warn(session + " sent a coordinate out of bounds! " + info.gameType + ":" + info.gameId + " x:" + x + " y:" + y);
+    return;
+  }
+  if (game.gameState.state[x][y] != 0) {
+    return;
+  }
+
+  // get session after current player
+  const allSessions = Object.keys(game.players);
+  const nextPlayerIndex = (allSessions.indexOf(session) + 1) % allSessions.length;
+
+  // make move
+  game.gameState.state[x][y] = (game.players[session] as any)["symbol"] == "X" ? 1 : 2;
+  await redisClient.json.set(`${info.gameType}:${info.gameId}`, "$.gameState.state", game.gameState.state);
+
+  // set next player
+  await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.currentTurn`, allSessions[nextPlayerIndex]);
+
+  // publish gamestate
+  await redisClient.publish(`${info.gameType}:${info.gameId}:gamestate`, JSON.stringify(game.gameState.state));
 }
