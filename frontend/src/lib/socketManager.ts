@@ -11,14 +11,8 @@ export function openSocket(onConnect = () => {}, onDisconnect = () => {}) {
     }
   });
 
-  socket.on("connect", () => {
-    console.log("Websocket successfully connected!");
-    onConnect();
-  });
-  socket.on("disconnect", () => {
-    console.log("Websocket disconnected!");
-    onDisconnect();
-  });
+  socket.on("connect", () => { onConnect(); });
+  socket.on("disconnect", () => { onDisconnect(); });
 
   return socket;
 }

@@ -69,7 +69,6 @@ async function processGameInfo(info: { gameType: string; gameId: string }, socke
   const subscriber: any = redisClient.duplicate();
   subscriber.connect();
 
-  await subscriber.subscribe(`${info.gameType}:${info.gameId}:chat`, (msg: string, _channel: string) => {processChatChange(msg, socket)});
   await subscriber.subscribe(`${info.gameType}:${info.gameId}:gamestate`, (msg: string, _channel: string) => {processGameStateChange(msg, socket)});
 
   if (info.gameType === "tictactoe")
@@ -137,6 +136,9 @@ async function initTicTacToe(info: { gameType: string; gameId: string }, socket:
     log.info("Spectator joined");
     socket.emit("playerType", ["spectator"]);
   }
+
+  // subscribe after player as been added
+  await subscriber.subscribe(`${info.gameType}:${info.gameId}:chat`, (msg: string, _channel: string) => {processChatChange(msg, socket)});
 
   if (game.gameState.gameStatus === "running") {
     // publish game state to all players

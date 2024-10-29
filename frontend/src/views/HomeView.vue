@@ -1,7 +1,5 @@
 <script setup lang="ts">
-  function onConnect() {
-    console.log("I am the homeview")
-  }
+
 </script>
 
 <template>

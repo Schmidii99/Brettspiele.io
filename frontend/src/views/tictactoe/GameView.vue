@@ -5,6 +5,8 @@
   import { Socket } from "socket.io-client";
   import { useRoute} from "vue-router";
   import Field from "@/components/tictactoe/Field.vue";
+import Chatbox from "@/components/Chatbox.vue";
+import ChatMessage from "@/components/ChatMessage.vue";
 
   let socket: null | Socket;
   let route = useRoute();
@@ -15,7 +17,7 @@
   let playerSymbol = ref("");
   let gameWinner = ref("");
 
-  let chat = ref([]);
+  let chat = ref(["Welcome to TicTacToe!"]);
 
   onMounted(() => {
     socket = openSocket(afterConnect);
@@ -32,12 +34,14 @@
     // listen to events
     socket.on("gameStateUpdate", gameStateUpdate);
     socket.on("playerType", (type: any) => {
-      console.log(type);
       if (type[0] == "spectator")
         isSpectator.value = true;
       else {
         playerSymbol.value = type[1];
       }
+    });
+    socket.on("chatUpdate", (msg: string) => {
+      chat.value.push(msg);
     });
 
     // send gameInfo to server
@@ -105,7 +109,7 @@
     <div v-if="isSpectator" class="flex w-full justify-center">
       <span class="text-3xl underline">You are Spectating the Game</span>
     </div>
-    <div v-if="playerSymbol != '' && gameWinner == ''" class="flex w-full justify-center">
+    <div v-if="playerSymbol != '' && gameWinner == '' && isRunning" class="flex w-full justify-center">
       <span class="text-3xl underline">You are Player {{playerSymbol}}</span>
     </div>
     <div v-if="gameWinner != '' && gameWinner != 'draw'" class="flex w-full justify-center">
@@ -129,5 +133,8 @@
         <Field v-for="(column, column_index) in row" :value="column" @click="() => sendClick(row_index, column_index)"/>
       </div>
     </div>
+      <Chatbox v-if="isRunning">
+        <ChatMessage v-for='message in chat' :message='message'/>
+      </Chatbox>
   </div>
 </template>
