@@ -180,9 +180,50 @@ async function tictactoeMove(info: {gameType: string, gameId: string}, x: number
   game.gameState.state[x][y] = (game.players[session] as any)["symbol"] == "X" ? 1 : 2;
   await redisClient.json.set(`${info.gameType}:${info.gameId}`, "$.gameState.state", game.gameState.state);
 
-  // set next player
-  await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.currentTurn`, allSessions[nextPlayerIndex]);
+  const winner: number = checkForWin(x, y, game.gameState.state);
+  if (winner != 0) {
+    await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.gameState.gameStatus`, "ended");
+    await redisClient.publish(`${info.gameType}:${info.gameId}:chat`, "Player " + (winner == 1 ? " X " : " O ") + "has won!");
+  } else {
+    // game did not end yet
+    // check for draw
+    let draw: boolean = true;
+    game.gameState.state.forEach((row: Array<number>) => {
+      row.forEach((column: number) => {
+        if (column == 0) {
+          draw = false;
+        }
+      })
+    });
+    if (draw) {
+      await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.gameState.gameStatus`, "ended");
+      await redisClient.publish(`${info.gameType}:${info.gameId}:chat`, "Draw!");
+    } else {
+      // set next player
+      await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.currentTurn`, allSessions[nextPlayerIndex]);
+    }
+  }
 
   // publish gamestate
   await redisClient.publish(`${info.gameType}:${info.gameId}:gamestate`, JSON.stringify(game.gameState.state));
+}
+
+function checkForWin(x: number, y: number, board: Array<Array<number>>): number {
+  // check row
+  if (board[x][0] != 0 && board[x][0] == board[x][1] && board[x][1] == board[x][2]) {
+    return board[x][0]
+  }
+  // check column
+  else if (board[0][y] != 0 && board[0][y] == board[1][y] && board[1][y] == board[2][y]) {
+    return board[0][y];
+  }
+  // check diagonal
+  else if (board[1][1] != 0 && (x + y) % 2 == 0 && board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
+    return board[0][0];
+  }
+  else if (board[1][1] != 0 && (x + y) % 2 == 0 && board[0][2] == board[1][1] && board[1][1] == board[2][0]) {
+    return board[0][2];
+  }
+
+  return 0;
 }

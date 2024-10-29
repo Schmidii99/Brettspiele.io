@@ -13,6 +13,7 @@
   let board = ref({state: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]});
   let isSpectator = ref(false);
   let playerSymbol = ref("");
+  let gameWinner = ref("");
 
   let chat = ref([]);
 
@@ -45,9 +46,11 @@
 
   function gameStateUpdate(state: any) {
     isRunning.value = true;
-    console.log("Got gamestate update");
+
     // on a gameState Update, update the board
     board.value.state = state;
+    
+    checkForGameEnd();
   }
 
   function getFullLink(): string { return window.location.href; }
@@ -61,15 +64,55 @@
     // send click
     socket?.emit("makeMove", { x: x, y: y });
   }
+
+  function checkForGameEnd() {
+    let winner = 0;
+    for (let i = 0; i < 3; i++) {
+      if (board.value.state[i][0] == board.value.state[i][1] && board.value.state[i][1] == board.value.state[i][2] && board.value.state[i][0] != 0) {
+        winner = board.value.state[i][0];
+      }
+      if (board.value.state[0][i] == board.value.state[1][i] && board.value.state[1][i] == board.value.state[2][i] && board.value.state[0][i] != 0) {
+        winner = board.value.state[0][i];
+      }
+    }
+    if (board.value.state[0][0] == board.value.state[1][1] && board.value.state[1][1] == board.value.state[2][2] && board.value.state[0][0] != 0) {
+      winner = board.value.state[0][0];
+    }
+    if (board.value.state[0][2] == board.value.state[1][1] && board.value.state[1][1] == board.value.state[2][0] && board.value.state[0][2] != 0) {
+      winner = board.value.state[0][2];
+    }
+
+    if (winner != 0) {
+      gameWinner.value = winner == 1 ? "X" : "O";
+    } else {
+      let draw: boolean = true;
+      board.value.state.forEach((row: Array<number>) => {
+        row.forEach((column: number) => {
+          if (column == 0) {
+            draw = false;
+          }
+        })
+      });
+      if (draw) {
+        gameWinner.value = "draw";
+      }
+    }
+  }
 </script>
 
 <template>
   <div>
-    <div v-if="isSpectator" class="flex w-full">
+    <div v-if="isSpectator" class="flex w-full justify-center">
       <span class="text-3xl underline">You are Spectating the Game</span>
     </div>
-    <div v-if="playerSymbol != ''" class="flex w-full">
+    <div v-if="playerSymbol != '' && gameWinner == ''" class="flex w-full justify-center">
       <span class="text-3xl underline">You are Player {{playerSymbol}}</span>
+    </div>
+    <div v-if="gameWinner != '' && gameWinner != 'draw'" class="flex w-full justify-center">
+      <span class="text-3xl underline">Player {{gameWinner}} won!</span>
+    </div>
+    <div v-if="gameWinner == 'draw'" class="flex w-full justify-center">
+      <span class="text-3xl underline">Draw!</span>
     </div>
     <div v-if="!isRunning" class="absolute flex items-center justify-center h-full w-full bg-gray-500 bg-opacity-75">
       <div class="bg-white w-1/5 h-3/4 flex flex-col">
