@@ -1,10 +1,10 @@
 import { serve } from "http_server";
 import { Server, type Socket } from "socket_io";
-import { FRONTEND_SERVER, SERVER_PORT, SESSION_HEADER } from "./config.ts";
+import {FRONTEND_SERVER, MAX_MESSAGE_LEN, SERVER_PORT, SESSION_HEADER} from "./config.ts";
 import { addPlayer, createGame, disconnectPlayer, getGame, redisClient } from "./lib/DatabaseManager.ts";
 import { setupLogger } from "./lib/LogManager.ts";
 import * as log from "log";
-import { getRandomInt } from "./lib/helper.ts";
+import {getRandomInt, sanitizeString} from "./lib/helper.ts";
 
 main();
 
@@ -45,10 +45,7 @@ async function main() {
 }
 
 
-async function processGameInfo(
-  info: { gameType: string; gameId: string },
-  socket: Socket
-): Promise<void> {
+async function processGameInfo(info: { gameType: string; gameId: string }, socket: Socket): Promise<void> {
   if (info.gameType == null || info.gameId == null || socket == null) {
     return;
   }
@@ -148,13 +145,16 @@ async function initTicTacToe(info: { gameType: string; gameId: string }, socket:
 }
 
 // subscribe event from redis db
-async function processChatChange(msg: string, socket: Socket) {
-  await socket.emit("chatUpdate", msg);
+function processChatChange(msg: string, socket: Socket) {
+  if (msg.length > MAX_MESSAGE_LEN) {
+    msg = msg.substring(0, MAX_MESSAGE_LEN);
+  }
+  socket.emit("chatUpdate", sanitizeString(msg));
 }
 
 // subscribe event from redis db
-async function processGameStateChange(msg: string, socket: Socket) {
-  await socket.emit("gameStateUpdate", JSON.parse(msg));
+function processGameStateChange(msg: string, socket: Socket) {
+  socket.emit("gameStateUpdate", JSON.parse(msg));
 }
 
 async function tictactoeMove(info: {gameType: string, gameId: string}, x: number, y: number, session: string) {
@@ -184,6 +184,7 @@ async function tictactoeMove(info: {gameType: string, gameId: string}, x: number
   if (winner != 0) {
     await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.gameState.gameStatus`, "ended");
     await redisClient.publish(`${info.gameType}:${info.gameId}:chat`, "Player " + (winner == 1 ? " X " : " O ") + "has won!");
+    await redisClient.json.arrAppend(`${info.gameType}:${info.gameId}`, `$.chat`, "Player " + (winner == 1 ? " X " : " O ") + "has won!");
   } else {
     // game did not end yet
     // check for draw
