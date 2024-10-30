@@ -7,10 +7,12 @@
   import Field from "@/components/tictactoe/Field.vue";
   import Chatbox from "@/components/Chatbox.vue";
   import ChatMessage from "@/components/ChatMessage.vue";
+  import { QrcodeSvg } from "qrcode.vue";
 
   let socket: null | Socket;
   let route = useRoute();
   let isRunning = ref(false);
+  let copied = ref(false);
 
   let board = ref({state: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]});
   let isSpectator = ref(false);
@@ -105,7 +107,7 @@
 </script>
 
 <template>
-  <div>
+  <div class="bg-gray-300 h-full">
     <div v-if="isSpectator" class="flex w-full justify-center">
       <span class="text-3xl underline">You are Spectating the Game</span>
     </div>
@@ -118,15 +120,19 @@
     <div v-if="gameWinner == 'draw'" class="flex w-full justify-center">
       <span class="text-3xl underline">Draw!</span>
     </div>
-    <div v-if="!isRunning" class="absolute flex items-center justify-center h-full w-full bg-gray-500 bg-opacity-75">
-      <div class="bg-white w-1/5 h-3/4 flex flex-col">
-        <span>
-          Invite your friend:
-        </span>
-        <span @click="copyToClipboard(getFullLink())" class="font-bold hover:cursor-pointer">
-          Link: {{getFullLink()}}
-        </span>
-      </div>
+
+    <div v-if="!isRunning" class="bg-white p-6 rounded-lg shadow-md my-4 mx-16 flex flex-col">
+      <h2 class="text-2xl font-bold mb-4">Share this link with your friends</h2>
+      <p @click="() => { copyToClipboard(getFullLink(), false); copied = true}" class="mt-4 text-blue-400 flex hover:cursor-pointer">
+        {{ getFullLink() }}
+      </p>
+      <p v-if="copied" class="text-green-500">
+        Sucessfully copied
+      </p>
+      <p class="mt-4">
+        Once a player joins, the game will start automatically.
+      </p>
+      <QrcodeSvg :value="getFullLink()" class="aspect-square w-32 h-32 lg:w-64 lg:h-64 mt-4"/>
     </div>
     <div v-if="isRunning" class="flex w-full justify-center items-center flex-col">
       <div v-for="(row, row_index) in board.state" class="w-full my-3 flex justify-center space-x-3">

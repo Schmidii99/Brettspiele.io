@@ -9,5 +9,4 @@
             </a>
         </main>
     </div>
-    
 </template>

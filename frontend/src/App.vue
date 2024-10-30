@@ -15,7 +15,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col h-full">
     <Navbar />
     <RouterView />
   </div>
