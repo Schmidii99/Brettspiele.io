@@ -1,24 +1,15 @@
 <script setup lang="ts">
-  import NavbarElement from "@/components/NavbarElement.vue";
 
-  const routes = [
-    {
-      path: "/",
-      name: "Home"
-    },
-    {
-      path: "/tictactoe",
-      name: "Tic Tac Toe"
-    }
-  ];
 </script>
 
 <template>
-  <header class="bg-blue-400 flex w-full p-4 space-x-4">
-      <NavbarElement class="p-2 hover:underline"
-                     v-for="route in routes"
-                     :link="route.path"
-                     :title="route.name"
-      />
-  </header>
+  <nav class="bg-blue-700 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold">BoardGames Live 🎲</a>
+            <div class="space-x-4">
+                <a href="/tictactoe" class="hover:text-blue-200">Tictactoe</a>
+                <a href="/about" class="hover:text-blue-200">About</a>
+            </div>
+        </div>
+    </nav>
 </template>

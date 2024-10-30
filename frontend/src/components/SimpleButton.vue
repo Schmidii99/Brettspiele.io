@@ -1,10 +1,9 @@
 <script setup lang="ts">
-
+  
 </script>
 
 <template>
-  <button class=" flex justify-center items-center border-2 border-black rounded-lg py-1 px-2
-                  hover:bg-blue-200 hover:cursor-pointer">
-    <slot />
+  <button class=" mt-3 inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300">
+    <slot></slot>
   </button>
 </template>

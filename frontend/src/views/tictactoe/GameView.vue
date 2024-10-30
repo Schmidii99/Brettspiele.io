@@ -5,8 +5,8 @@
   import { Socket } from "socket.io-client";
   import { useRoute} from "vue-router";
   import Field from "@/components/tictactoe/Field.vue";
-import Chatbox from "@/components/Chatbox.vue";
-import ChatMessage from "@/components/ChatMessage.vue";
+  import Chatbox from "@/components/Chatbox.vue";
+  import ChatMessage from "@/components/ChatMessage.vue";
 
   let socket: null | Socket;
   let route = useRoute();
