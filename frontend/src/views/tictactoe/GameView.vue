@@ -134,7 +134,7 @@
       </p>
       <QrcodeSvg :value="getFullLink()" class="aspect-square w-32 h-32 lg:w-64 lg:h-64 mt-4"/>
     </div>
-    <div v-if="isRunning" class="flex w-full justify-center items-center flex-col">
+    <div v-if="isRunning" class="flex w-full justify-center items-center flex-col mb-4">
       <div v-for="(row, row_index) in board.state" class="w-full my-3 flex justify-center space-x-3">
         <Field v-for="(column, column_index) in row" :value="column" @click="() => sendClick(row_index, column_index)"/>
       </div>
