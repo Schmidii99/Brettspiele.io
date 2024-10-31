@@ -17,6 +17,7 @@ import SimpleButton from "@/components/SimpleButton.vue";
   let myTurn = ref(false);
 
   let board = ref({state: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]});
+  let highlightMatrix = ref({state: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]});
   let isSpectator = ref(false);
   let playerSymbol = ref("");
   let gameWinner = ref("");
@@ -82,16 +83,28 @@ import SimpleButton from "@/components/SimpleButton.vue";
     for (let i = 0; i < 3; i++) {
       if (board.value.state[i][0] == board.value.state[i][1] && board.value.state[i][1] == board.value.state[i][2] && board.value.state[i][0] != 0) {
         winner = board.value.state[i][0];
+        highlightMatrix.value.state[i][0] = 1;
+        highlightMatrix.value.state[i][1] = 1;
+        highlightMatrix.value.state[i][2] = 1;
       }
       if (board.value.state[0][i] == board.value.state[1][i] && board.value.state[1][i] == board.value.state[2][i] && board.value.state[0][i] != 0) {
         winner = board.value.state[0][i];
+        highlightMatrix.value.state[0][i] = 1;
+        highlightMatrix.value.state[1][i] = 1;
+        highlightMatrix.value.state[2][i] = 1;
       }
     }
     if (board.value.state[0][0] == board.value.state[1][1] && board.value.state[1][1] == board.value.state[2][2] && board.value.state[0][0] != 0) {
       winner = board.value.state[0][0];
+      highlightMatrix.value.state[0][0] = 1;
+      highlightMatrix.value.state[1][1] = 1;
+      highlightMatrix.value.state[2][2] = 1;
     }
     if (board.value.state[0][2] == board.value.state[1][1] && board.value.state[1][1] == board.value.state[2][0] && board.value.state[0][2] != 0) {
       winner = board.value.state[0][2];
+      highlightMatrix.value.state[0][2] = 1;
+      highlightMatrix.value.state[1][1] = 1;
+      highlightMatrix.value.state[2][0] = 1;
     }
 
     if (winner != 0) {
@@ -159,7 +172,10 @@ import SimpleButton from "@/components/SimpleButton.vue";
     </div>
     <div v-if="isRunning" class="flex w-full justify-center items-center flex-col mb-2 mt-2 space-y-1 lg:space-y-3">
       <div v-for="(row, row_index) in board.state" class="w-full flex justify-center space-x-1 lg:space-x-3">
-        <Field v-for="(column, column_index) in row" :value="column" @click="() => sendClick(row_index, column_index)"/>
+        <Field  v-for="(column, column_index) in row" 
+                :highlighted="highlightMatrix.state[row_index][column_index] == 1" 
+                :value="column" 
+                @click="() => sendClick(row_index, column_index)"/>
       </div>
     </div>
     <div v-if="gameWinner != '' || true" class="flex justify-center items-center mb-4">
