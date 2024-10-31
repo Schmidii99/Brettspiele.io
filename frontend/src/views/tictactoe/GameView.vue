@@ -3,16 +3,18 @@
   import { openSocket } from "@/lib/socketManager";
   import { copyToClipboard } from "@/lib/helper";
   import { Socket } from "socket.io-client";
-  import { useRoute} from "vue-router";
+  import { useRoute, useRouter} from "vue-router";
   import Field from "@/components/tictactoe/Field.vue";
   import Chatbox from "@/components/Chatbox.vue";
   import ChatMessage from "@/components/ChatMessage.vue";
   import { QrcodeSvg } from "qrcode.vue";
+import SimpleButton from "@/components/SimpleButton.vue";
 
   let socket: null | Socket;
   let route = useRoute();
   let isRunning = ref(false);
   let copied = ref(false);
+  let myTurn = ref(false);
 
   let board = ref({state: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]});
   let isSpectator = ref(false);
@@ -21,8 +23,10 @@
 
   let chat = ref(["Welcome to TicTacToe!"]);
 
+  const currentRouter = useRouter();
+
   onMounted(() => {
-    socket = openSocket(`${location.protocol}//${location.hostname}`, afterConnect);
+    socket = openSocket(`ws://${location.hostname}`, afterConnect);
   });
 
   onUnmounted(() => {
@@ -40,6 +44,7 @@
         isSpectator.value = true;
       else {
         playerSymbol.value = type[1];
+        myTurn.value = playerSymbol.value != "X";
       }
     });
     socket.on("chatUpdate", (msg: string) => {
@@ -55,6 +60,7 @@
 
     // on a gameState Update, update the board
     board.value.state = state;
+    myTurn.value = !myTurn.value;
     
     checkForGameEnd();
   }
@@ -104,6 +110,19 @@
       }
     }
   }
+
+  async function playAgain() {
+    let currentUrl: string = route.params["gameid"] as string;
+    const shuffle = "fU1rR3QCDteqJbZ7iucTzGFaApgsO9YKHEwoyMk5lWIv2nS8P6LNX4BVxmd0jh";
+    let newId = "";
+    currentUrl.split('').forEach((char: string) => {
+      newId += shuffle[(shuffle.indexOf(char) + 1) % 62];
+    });
+
+    currentRouter.replace("/tictactoe/" + newId);
+    await new Promise(f => setTimeout(f, 1));
+    location.reload();
+  }
 </script>
 
 <template>
@@ -120,6 +139,10 @@
     <div v-if="gameWinner == 'draw'" class="flex w-full justify-center">
       <span class="text-3xl underline">Draw!</span>
     </div>
+    <div v-if="playerSymbol != '' && gameWinner == '' && isRunning" class="flex w-full justify-center">
+      <span v-if="myTurn" class="text-3xl underline">Your turn</span>
+      <span v-if="!myTurn" class="text-3xl underline">Opponents turn</span>
+    </div>
 
     <div v-if="!isRunning" class="bg-white p-6 rounded-lg shadow-md my-4 mx-16 flex flex-col">
       <h2 class="text-2xl font-bold mb-4">Share this link with your friends</h2>
@@ -134,13 +157,19 @@
       </p>
       <QrcodeSvg :value="getFullLink()" class="aspect-square w-32 h-32 lg:w-64 lg:h-64 mt-4"/>
     </div>
-    <div v-if="isRunning" class="flex w-full justify-center items-center flex-col mb-4">
-      <div v-for="(row, row_index) in board.state" class="w-full my-3 flex justify-center space-x-3">
+    <div v-if="isRunning" class="flex w-full justify-center items-center flex-col mb-2 mt-2 space-y-1 lg:space-y-3">
+      <div v-for="(row, row_index) in board.state" class="w-full flex justify-center space-x-1 lg:space-x-3">
         <Field v-for="(column, column_index) in row" :value="column" @click="() => sendClick(row_index, column_index)"/>
       </div>
     </div>
-      <Chatbox v-if="isRunning">
-        <ChatMessage v-for='message in chat' :message='message'/>
-      </Chatbox>
+    <div v-if="gameWinner != '' || true" class="flex justify-center items-center mb-4">
+      <SimpleButton @click="playAgain">
+        Click here to play again!
+      </SimpleButton>
+    </div>
+    
+    <Chatbox v-if="isRunning">
+      <ChatMessage v-for='message in chat' :message='message'/>
+    </Chatbox>
   </div>
 </template>
