@@ -11,7 +11,7 @@
 </script>
 
 <template>
-  <div class="w-full h-full flex justify-center items-center m-4 flex-col">
+  <div class="w-full h-full flex justify-center items-center p-4 flex-col">
     <div class="mb-5 text-center">
       <h1 class="text-5xl font-bold text-blue-800 my-4">Play Tic Tac Toe</h1>
       <p class="text-xl text-gray-600">Start playing, by clicking the button below</p>
