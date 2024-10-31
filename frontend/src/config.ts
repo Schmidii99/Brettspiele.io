@@ -1,1 +1,1 @@
-export const SOCKET_SERVER_URL: string = "http://localhost:8080";
+export const SOCKET_SERVER_PORT: string = "8080";

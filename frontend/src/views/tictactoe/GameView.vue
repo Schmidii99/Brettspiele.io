@@ -22,7 +22,7 @@
   let chat = ref(["Welcome to TicTacToe!"]);
 
   onMounted(() => {
-    socket = openSocket(afterConnect);
+    socket = openSocket(`${location.protocol}//${location.hostname}`, afterConnect);
   });
 
   onUnmounted(() => {
