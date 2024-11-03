@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, reactive, ref } from "vue";
   import { openSocket } from "@/lib/socketManager";
-  import { copyToClipboard } from "@/lib/helper";
+  import { copyToClipboard, generateRandomString } from "@/lib/helper";
   import { Socket } from "socket.io-client";
   import { useRoute, useRouter} from "vue-router";
   import Field from "@/components/tictactoe/Field.vue";
@@ -9,6 +9,7 @@
   import ChatMessage from "@/components/ChatMessage.vue";
   import { QrcodeSvg } from "qrcode.vue";
 import SimpleButton from "@/components/SimpleButton.vue";
+import { MAX_GAME_ID_LEN } from "@/config";
 
   let socket: null | Socket;
   let route = useRoute();
@@ -26,8 +27,16 @@ import SimpleButton from "@/components/SimpleButton.vue";
 
   const currentRouter = useRouter();
 
-  onMounted(() => {
-    socket = openSocket(`ws://${location.hostname}`, afterConnect);
+  onMounted(async () => {
+    // validate game id
+    let gameId: string = route.params["gameid"] as string;
+    if (gameId.length > MAX_GAME_ID_LEN || (gameId.match(/[^a-zA-Z\d\s:]/g) || []).length != 0) {
+      currentRouter.replace("/tictactoe/" + generateRandomString(MAX_GAME_ID_LEN));
+      await new Promise(f => setTimeout(f, 1));
+      location.reload();
+    } else {
+      socket = openSocket(`ws://${location.hostname}`, afterConnect);
+    }
   });
 
   onUnmounted(() => {
@@ -178,7 +187,7 @@ import SimpleButton from "@/components/SimpleButton.vue";
                 @click="() => sendClick(row_index, column_index)"/>
       </div>
     </div>
-    <div v-if="gameWinner != '' || true" class="flex justify-center items-center mb-4">
+    <div v-if="gameWinner != ''" class="flex justify-center items-center mb-4">
       <SimpleButton @click="playAgain">
         Click here to play again!
       </SimpleButton>

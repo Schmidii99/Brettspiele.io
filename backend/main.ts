@@ -1,6 +1,6 @@
 import { serve } from "http_server";
 import { Server, type Socket } from "socket_io";
-import {FRONTEND_SERVER, MAX_MESSAGE_LEN, SERVER_PORT, SESSION_HEADER} from "./config.ts";
+import {FRONTEND_SERVER, MAX_GAME_ID_LEN, MAX_MESSAGE_LEN, SERVER_PORT, SESSION_HEADER} from "./config.ts";
 import { addPlayer, createGame, disconnectPlayer, getGame, redisClient } from "./lib/DatabaseManager.ts";
 import { setupLogger } from "./lib/LogManager.ts";
 import * as log from "log";
@@ -47,6 +47,18 @@ async function main() {
 
 async function processGameInfo(info: { gameType: string; gameId: string }, socket: Socket): Promise<void> {
   if (info.gameType == null || info.gameId == null || socket == null) {
+    return;
+  }
+
+  // limit game id
+  if (info.gameId.length > MAX_GAME_ID_LEN || (info.gameId.match(/[^a-zA-Z\d\s:]/g) || []).length != 0) {
+    socket.disconnect();
+    log.warn("Mal formed game id: " + info.gameId);
+    return;
+  }
+  if (info.gameType != "tictactoe") {
+    socket.disconnect();
+    log.warn("Wrong gametype: " + info.gameType);
     return;
   }
 

@@ -5,3 +5,4 @@ export const LOG_PATH = "./backend.log";
 export const SESSION_HEADER = "X-Session";
 export const GAME_TTL_AFTER_DISCONNECT = 60;
 export const MAX_MESSAGE_LEN = 64;
+export const MAX_GAME_ID_LEN = 6;
