@@ -9,9 +9,11 @@ RUN npm run build
 FROM nginx:1.21.6
 COPY --from=0 /app/dist /app/dist
 RUN rm /etc/nginx/conf.d/default.conf
-COPY ./nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./nginx/prod.conf /etc/nginx/conf.d/default.conf
 COPY ./nginx/certs/floslabs.de.key /etc/nginx/certs/floslabs.de.key
 COPY ./nginx/certs/floslabs.de.pem /etc/nginx/certs/floslabs.de.pem
+COPY ./nginx/certs/cloudflare.crt /etc/nginx/certs/cloudflare.crt
 
 EXPOSE 80
 EXPOSE 443
+EXPOSE 8443

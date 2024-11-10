@@ -8,7 +8,8 @@ export function openSocket(url: string, onConnect = () => {}, onDisconnect = () 
   const socket = io((url + ":" + SOCKET_SERVER_PORT), {
     extraHeaders: {
       "x-session": sessionStore.session,
-    }
+    },
+    secure: true
   });
 
   socket.on("connect", () => { onConnect(); });

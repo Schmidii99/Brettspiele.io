@@ -1,3 +1,3 @@
 #!/bin/sh
 
-docker compose up --build 
+docker compose -f prod-Dockerfile up --build
