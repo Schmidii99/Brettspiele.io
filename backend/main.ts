@@ -19,7 +19,6 @@ async function main() {
   const io = new Server({
     cors: {
       origin: FRONTEND_SERVER,
-      methods: ["GET", "POST"],
     },
   });
 
