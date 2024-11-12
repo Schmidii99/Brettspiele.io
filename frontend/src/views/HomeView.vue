@@ -78,7 +78,7 @@ import CustomFooter from '@/components/CustomFooter.vue';
     <section id="improve" class="container mx-auto py-16 text-center">
         <h2 class="text-3xl font-bold mb-8">Can we improve?</h2>
         <p class="text-xl text-gray-600 mb-2">Share your thoughts about this page and submit a feedback!</p>
-        <a class="text-blue-400 hover:text-blue-300" href="https://github.com/Schmidii99/Brettspiele.io" target="_blank" rel="noopener noreferrer">
+        <a class="text-blue-400 hover:text-blue-300" href="https://forms.gle/948CxsVReqLteKC56" target="_blank" rel="noopener noreferrer">
             Feedback survey
         </a>
     </section>
