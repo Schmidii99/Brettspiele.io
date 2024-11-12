@@ -16,4 +16,3 @@ COPY ./nginx/certs/cloudflare.crt /etc/nginx/certs/cloudflare.crt
 
 EXPOSE 80
 EXPOSE 443
-EXPOSE 8443
