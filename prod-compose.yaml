@@ -1,0 +1,46 @@
+networks:
+  default:
+    enable_ipv6: true
+
+services:
+  redis:
+    image: 'redis/redis-stack:6.2.6-v17'
+    volumes:
+      - ./redis-data:/data
+    environment:
+      REDIS_ARGS: '--appendonly yes'
+    ports:
+       - '127.0.0.1:6379:6379'
+  backend1:
+    restart: on-failure
+    build: backend
+    hostname: backend1
+    ports:
+      - '127.0.0.1:83:8080'
+    environment:
+      REDIS_URL: 'redis://redis:6379'
+      ORIGIN: 'https://floslabs.de'
+    depends_on:
+      - redis
+  backend2:
+    restart: on-failure
+    build: backend
+    hostname: backend2
+    ports:
+      - '127.0.0.1:84:8080'
+    environment:
+      REDIS_URL: 'redis://redis:6379'
+    depends_on:
+      - redis
+  nginx:
+    build:
+      context: ./
+      dockerfile: ./nginx/prod-Dockerfile
+    ports:
+    - '80:80'
+    - '443:443'
+    depends_on:
+    - backend1
+    - backend2
+
+

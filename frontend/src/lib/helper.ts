@@ -3,3 +3,22 @@ export function generateUUID(): string {
     (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
   );
 }
+
+export function generateRandomString(length: number): string {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  let counter = 0;
+  while (counter < length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    counter += 1;
+  }
+  return result;
+}
+
+export function copyToClipboard(text: string, showAlert: boolean = true) {
+  navigator.clipboard.writeText(text);
+  // Alert the copied text
+  if (showAlert)
+    alert("Successfully copied to clipboard!");
+}

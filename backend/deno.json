@@ -1,0 +1,13 @@
+{
+  "tasks": {
+    "dev": "deno run --watch --allow-env --allow-net --allow-write main.ts",
+    "build": "deno run --allow-env --allow-net --allow-write main.ts"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1",
+    "redis": "npm:redis@^4.7.0",
+    "socket_io": "https://deno.land/x/socket_io@0.2.0/mod.ts",
+    "http_server": "https://deno.land/std@0.220.1/http/server.ts",
+    "log": "jsr:@std/log"
+  }
+}

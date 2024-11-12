@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
@@ -14,6 +14,8 @@
   },
   "dependencies": {
     "pinia": "^2.2.4",
+    "pinia-plugin-persistedstate": "^4.1.1",
+    "qrcode.vue": "^3.5.1",
     "socket.io-client": "^4.8.0",
     "vue": "^3.5.11",
     "vue-router": "^4.4.5"

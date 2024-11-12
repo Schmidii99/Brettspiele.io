@@ -1,12 +1,13 @@
-import { ref } from 'vue'
-import { defineStore } from 'pinia'
+import { ref } from 'vue';
+import { defineStore } from 'pinia';
 import { generateUUID } from "@/lib/helper";
 
-export const useSessionStore = defineStore('sessionStore', () => {
-  const session = ref(generateUUID())
-  function resetSession() {
-    count.value++
-  }
+export const useSessionStore =
+  defineStore('session', () => {
+    const session = ref("");
+    function resetSession(): void {
+      session.value = generateUUID();
+    }
 
-  return { session, resetSession }
-})
+    return { session, resetSession };
+}, {persist: true});

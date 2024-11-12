@@ -1,10 +1,14 @@
-FROM node:22-alpine3.19
+FROM denoland/deno:2.0.2
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
 COPY . .
 
-EXPOSE 3000
-CMD ["node", "."]
+RUN deno cache main.ts
+RUN touch ./backend.log
+RUN chmod 666 ./backend.log
+
+USER deno
+EXPOSE 8080
+
+CMD ["task", "build"]
