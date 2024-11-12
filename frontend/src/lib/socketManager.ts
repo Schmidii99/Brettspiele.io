@@ -5,7 +5,9 @@ import {useSessionStore} from "@/stores/sessionStore";
 export function openSocket(onConnect = () => {}, onDisconnect = () => {}) {
   const sessionStore = useSessionStore();
 
-  const socket = io("ws://" + location.hostname, {
+  const protocol: string = import.meta.env.VITE_SOCKET_PROTOCOL || "wss://";
+
+  const socket = io(protocol + location.hostname, {
     path: SOCKET_SERVER_PATH,
     extraHeaders: {
       "x-session": sessionStore.session,
