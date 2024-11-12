@@ -1,11 +1,12 @@
 import {io} from "socket.io-client";
-import {SOCKET_SERVER_PORT } from "@/config";
+import {SOCKET_SERVER_PATH } from "@/config";
 import {useSessionStore} from "@/stores/sessionStore";
 
-export function openSocket(url: string, onConnect = () => {}, onDisconnect = () => {}) {
+export function openSocket(onConnect = () => {}, onDisconnect = () => {}) {
   const sessionStore = useSessionStore();
 
-  const socket = io((url + ":" + SOCKET_SERVER_PORT), {
+  const socket = io("ws://" + location.hostname, {
+    path: SOCKET_SERVER_PATH,
     extraHeaders: {
       "x-session": sessionStore.session,
     },

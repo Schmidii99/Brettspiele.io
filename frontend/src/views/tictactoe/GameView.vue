@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { onMounted, onUnmounted, reactive, ref } from "vue";
+  import { onMounted, onUnmounted, ref } from "vue";
   import { openSocket } from "@/lib/socketManager";
   import { copyToClipboard, generateRandomString } from "@/lib/helper";
   import { Socket } from "socket.io-client";
@@ -12,30 +12,30 @@ import SimpleButton from "@/components/SimpleButton.vue";
 import { MAX_GAME_ID_LEN } from "@/config";
 
   let socket: null | Socket;
-  let route = useRoute();
-  let isRunning = ref(false);
-  let copied = ref(false);
-  let myTurn = ref(false);
+  const route = useRoute();
+  const isRunning = ref(false);
+  const copied = ref(false);
+  const myTurn = ref(false);
 
-  let board = ref({state: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]});
-  let highlightMatrix = ref({state: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]});
-  let isSpectator = ref(false);
-  let playerSymbol = ref("");
-  let gameWinner = ref("");
+  const board = ref({state: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]});
+  const highlightMatrix = ref({state: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]});
+  const isSpectator = ref(false);
+  const playerSymbol = ref("");
+  const gameWinner = ref("");
 
-  let chat = ref(["Welcome to TicTacToe!"]);
+  const chat = ref(["Welcome to TicTacToe!"]);
 
   const currentRouter = useRouter();
 
   onMounted(async () => {
     // validate game id
-    let gameId: string = route.params["gameid"] as string;
+    const gameId: string = route.params["gameid"] as string;
     if (gameId.length > MAX_GAME_ID_LEN || (gameId.match(/[^a-zA-Z\d\s:]/g) || []).length != 0) {
       currentRouter.replace("/tictactoe/" + generateRandomString(MAX_GAME_ID_LEN));
       await new Promise(f => setTimeout(f, 1));
       location.reload();
     } else {
-      socket = openSocket(`ws://${location.hostname}`, afterConnect);
+      socket = openSocket(afterConnect);
     }
   });
 
@@ -71,7 +71,7 @@ import { MAX_GAME_ID_LEN } from "@/config";
     // on a gameState Update, update the board
     board.value.state = state;
     myTurn.value = !myTurn.value;
-    
+
     checkForGameEnd();
   }
 
@@ -134,7 +134,7 @@ import { MAX_GAME_ID_LEN } from "@/config";
   }
 
   async function playAgain() {
-    let currentUrl: string = route.params["gameid"] as string;
+    const currentUrl: string = route.params["gameid"] as string;
     const shuffle = "fU1rR3QCDteqJbZ7iucTzGFaApgsO9YKHEwoyMk5lWIv2nS8P6LNX4BVxmd0jh";
     let newId = "";
     currentUrl.split('').forEach((char: string) => {
@@ -181,9 +181,9 @@ import { MAX_GAME_ID_LEN } from "@/config";
     </div>
     <div v-if="isRunning" class="flex w-full justify-center items-center flex-col mb-2 mt-2 space-y-1 lg:space-y-3">
       <div v-for="(row, row_index) in board.state" class="w-full flex justify-center space-x-1 lg:space-x-3">
-        <Field  v-for="(column, column_index) in row" 
-                :highlighted="highlightMatrix.state[row_index][column_index] == 1" 
-                :value="column" 
+        <Field  v-for="(column, column_index) in row"
+                :highlighted="highlightMatrix.state[row_index][column_index] == 1"
+                :value="column"
                 @click="() => sendClick(row_index, column_index)"/>
       </div>
     </div>
@@ -192,7 +192,7 @@ import { MAX_GAME_ID_LEN } from "@/config";
         Click here to play again!
       </SimpleButton>
     </div>
-    
+
     <Chatbox v-if="isRunning">
       <ChatMessage v-for='message in chat' :message='message'/>
     </Chatbox>

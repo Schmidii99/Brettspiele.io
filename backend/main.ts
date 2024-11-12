@@ -17,6 +17,7 @@ async function main() {
   await redisClient.connect();
 
   const io = new Server({
+    path: "/api/",
     cors: {
       origin: FRONTEND_SERVER,
     },

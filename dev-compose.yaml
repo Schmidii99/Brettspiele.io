@@ -35,7 +35,6 @@ services:
       dockerfile: nginx/dev-Dockerfile
     ports:
     - '80:80'
-    - '8443:8443'
     depends_on:
     - backend1
     - backend2
