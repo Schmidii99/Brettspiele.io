@@ -1,20 +1,20 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref } from "vue";
   import { openSocket } from "@/lib/socketManager";
-  import { copyToClipboard, generateRandomString } from "@/lib/helper";
+  import { generateRandomString, getFullLink } from "@/lib/helper";
   import { Socket } from "socket.io-client";
   import { useRoute, useRouter} from "vue-router";
   import Field from "@/components/tictactoe/Field.vue";
   import Chatbox from "@/components/Chatbox.vue";
   import ChatMessage from "@/components/ChatMessage.vue";
-  import { QrcodeSvg } from "qrcode.vue";
 import SimpleButton from "@/components/SimpleButton.vue";
 import { MAX_GAME_ID_LEN } from "@/config";
+import LinkDisplay from "@/components/games/LinkDisplay.vue";
+import InfoDisplay from "@/components/games/InfoDisplay.vue";
 
   let socket: null | Socket;
   const route = useRoute();
   const isRunning = ref(false);
-  const copied = ref(false);
   const myTurn = ref(false);
 
   const board = ref({state: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]});
@@ -49,7 +49,7 @@ import { MAX_GAME_ID_LEN } from "@/config";
 
     // listen to events
     socket.on("gameStateUpdate", gameStateUpdate);
-    socket.on("playerType", (type: any) => {
+    socket.on("playerType", (type: Array<string>) => {
       if (type[0] == "spectator")
         isSpectator.value = true;
       else {
@@ -65,7 +65,7 @@ import { MAX_GAME_ID_LEN } from "@/config";
     socket.emit("gameInfo", { gameType: "tictactoe", gameId: route.params["gameid"] });
   }
 
-  function gameStateUpdate(state: any) {
+  function gameStateUpdate(state: Array<Array<number>>) {
     isRunning.value = true;
 
     // on a gameState Update, update the board
@@ -74,8 +74,6 @@ import { MAX_GAME_ID_LEN } from "@/config";
 
     checkForGameEnd();
   }
-
-  function getFullLink(): string { return window.location.href; }
 
   function sendClick(x: number, y: number) {
     if (isSpectator.value) return;
@@ -149,36 +147,10 @@ import { MAX_GAME_ID_LEN } from "@/config";
 
 <template>
   <div class="bg-gray-300 h-full">
-    <div v-if="isSpectator" class="flex w-full justify-center">
-      <span class="text-3xl underline">You are Spectating the Game</span>
-    </div>
-    <div v-if="playerSymbol != '' && gameWinner == '' && isRunning" class="flex w-full justify-center">
-      <span class="text-3xl underline">You are Player {{playerSymbol}}</span>
-    </div>
-    <div v-if="gameWinner != '' && gameWinner != 'draw'" class="flex w-full justify-center">
-      <span class="text-3xl underline">Player {{gameWinner}} won!</span>
-    </div>
-    <div v-if="gameWinner == 'draw'" class="flex w-full justify-center">
-      <span class="text-3xl underline">Draw!</span>
-    </div>
-    <div v-if="playerSymbol != '' && gameWinner == '' && isRunning" class="flex w-full justify-center">
-      <span v-if="myTurn" class="text-3xl underline">Your turn</span>
-      <span v-if="!myTurn" class="text-3xl underline">Opponents turn</span>
-    </div>
+    <InfoDisplay :is-running="isRunning" :is-spectator="isSpectator" :player-symbol="playerSymbol" :game-winner="gameWinner" :my-turn="myTurn"/>
 
-    <div v-if="!isRunning" class="bg-white p-6 rounded-lg shadow-md my-4 mx-16 flex flex-col">
-      <h2 class="text-2xl font-bold mb-4">Share this link with your friends</h2>
-      <p @click="() => { copyToClipboard(getFullLink(), false); copied = true}" class="mt-4 text-blue-400 flex hover:cursor-pointer">
-        {{ getFullLink() }}
-      </p>
-      <p v-if="copied" class="text-green-500">
-        Sucessfully copied
-      </p>
-      <p class="mt-4">
-        Once a player joins, the game will start automatically.
-      </p>
-      <QrcodeSvg :value="getFullLink()" class="aspect-square w-32 h-32 lg:w-64 lg:h-64 mt-4"/>
-    </div>
+    <LinkDisplay v-if="!isRunning" :full-link="getFullLink()"/>
+    
     <div v-if="isRunning" class="flex w-full justify-center items-center flex-col mb-2 mt-2 space-y-1 lg:space-y-3">
       <div v-for="(row, row_index) in board.state" class="w-full flex justify-center space-x-1 lg:space-x-3">
         <Field  v-for="(column, column_index) in row"
@@ -194,7 +166,7 @@ import { MAX_GAME_ID_LEN } from "@/config";
     </div>
 
     <Chatbox v-if="isRunning">
-      <ChatMessage v-for='message in chat' :message='message'/>
+      <ChatMessage v-for='message in chat' :message='message' />
     </Chatbox>
   </div>
 </template>

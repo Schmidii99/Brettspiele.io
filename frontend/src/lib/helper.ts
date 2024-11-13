@@ -22,3 +22,5 @@ export function copyToClipboard(text: string, showAlert: boolean = true) {
   if (showAlert)
     alert("Successfully copied to clipboard!");
 }
+
+export function getFullLink(): string { return window.location.href; }
