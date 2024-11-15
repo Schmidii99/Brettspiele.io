@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import PageNotFoundView from '@/views/PageNotFoundView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,6 +22,12 @@ const router = createRouter({
       path: '/about/',
       name: 'About Us',
       component: () => import('@/views/AboutView.vue'),
+    },
+    {
+      path: '/connect4/:gameid', name: 'Connect Four Game View', component: () => import('@/views/connect4/GameView.vue'),
+    },
+    {
+      path: '/connect4/', name: 'Connect Four', component: () => import('@/views/connect4/Connect4View.vue'),
     },
     { path: '/:pathMatch(.*)*', name: '404 Not Found', component: () => import("@/views/PageNotFoundView.vue"), },
   ],

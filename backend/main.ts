@@ -7,6 +7,7 @@ import * as log from "log";
 import { sanitizeString } from "./lib/helper.ts";
 import { GameTypes } from "./lib/GameTypes.ts";
 import * as TicTacToe from "./lib/TicTacToe.ts";
+import * as Connect4 from "./lib/Connect4.ts";
 
 main();
 
@@ -86,6 +87,8 @@ async function processGameInfo(info: { gameType: string; gameId: string }, socke
 
   if (info.gameType === "tictactoe")
     await TicTacToe.initTicTacToe(info, socket, game, session, subscriber);
+  else if (info.gameType === "connect4")
+    await Connect4.initConnect4(info, socket, game, session, subscriber);
 }
 
 // subscribe event from redis db

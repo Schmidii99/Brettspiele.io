@@ -21,13 +21,13 @@ import CustomFooter from '@/components/CustomFooter.vue';
                     Play Now
                 </a>
             </div>
-            <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="bg-white p-6 rounded-lg shadow-md hover:scale-105">
                 <div class="text-4xl mb-4">🔴</div>
                 <h3 class="text-xl font-bold mb-2">Connect 4</h3>
                 <p class="text-gray-600">Drop your discs and claim four in a row!</p>
-                <button disabled class="bg-gray-500 text-white font-bold py-2 px-6 rounded-lg cursor-not-allowed mt-9">
-                    Coming Soon
-                </button>
+                <a href="/connect4" class="mt-3 inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300">
+                    Play Now
+                </a>
             </div>
         </div>
     </section>
