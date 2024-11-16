@@ -19,7 +19,7 @@ const isRunning = ref(false);
 const myTurn = ref(false);
 const isSpectator = ref(false);
 const playerSymbol = ref('');
-const gameWinner = ref('');
+const gameWinner = ref(0);
 const chat = ref(["Welcome to Connect Four!"]);
 const board = ref({state: Array.from({ length: 6 }, () => Array.from({ length: 7 }, () => 0))});
 
@@ -68,13 +68,19 @@ function afterConnect() {
 function gameStateUpdate(state: Array<Array<number>>) {
     isRunning.value = true;
 
-    console.log("gameStateUpdate", state)
+    // find different indicies
+    for (let i = 0; i < state.length; i++) {
+      for (let j = 0; j < state[0].length; j++) {
+        if (state[i][j] != board.value.state[i][j]) {
+          gameWinner.value = checkForWin(i, j, state); 
+          break;
+        }
+      }
+    }
 
     // on a gameState Update, update the board
     board.value.state = state;
     myTurn.value = !myTurn.value;
-
-    checkForGameEnd();
   }
   
   function sendClick(column: number) {
@@ -85,10 +91,6 @@ function gameStateUpdate(state: Array<Array<number>>) {
 
     // send click
     socket?.emit("makeMove", { column: column });
-  }
-
-  function checkForGameEnd() {
-    
   }
 
   async function playAgain() {
@@ -103,6 +105,80 @@ function gameStateUpdate(state: Array<Array<number>>) {
     await new Promise(f => setTimeout(f, 1));
     location.reload();
   }
+
+  function checkForWin(row: number, column: number, board: Array<Array<number>>): number {
+    // check row
+    let count = 0;
+    let current_player = board[row][0];
+    for (let i = 0; i < board[row].length; i++) {
+        if (board[row][i] != current_player) {
+            count = 1;
+            current_player = board[row][i];
+        } else if (board[row][i] != 0) {
+            count++;
+        }
+
+        if (count == 4) {
+            return current_player;
+        }
+    }
+    count = 0;
+    current_player = board[0][column];
+    // check column
+    for (let i = 0; i < board.length; i++) {
+        if (board[i][column] != current_player) {
+            count = 1;
+            current_player = board[i][column];
+        } else if (board[i][column] != 0) {
+            count++;
+        }
+
+        if (count == 4) {
+            return current_player;
+        }
+    }
+
+    // check left down to right up
+    const steps_to_left_down = Math.min(6 - (row + 1), (column));
+    const steps_to_right_up = Math.min((row), 6 - (column));
+
+    count = 0;
+    current_player = board[row + steps_to_left_down][column - steps_to_left_down];
+    for (let i = 0; i < steps_to_left_down + steps_to_right_up + 1; i++) {
+        if (board[row + steps_to_left_down - i][column - steps_to_left_down + i] != current_player) {
+            count = 1;
+            current_player = board[row + steps_to_left_down - i][column - steps_to_left_down + i];
+        } else if (board[row + steps_to_left_down - i][column - steps_to_left_down + i] != 0) {
+            count++;
+        }
+
+        if (count == 4) {
+            return current_player;
+        }
+    }
+
+    // check left up to right down
+    const steps_to_left_up = Math.min(row, column);
+    const steps_to_right_down = Math.min((5 - row), (6 - column))
+
+    count = 0;
+    current_player = board[row - steps_to_left_up][column - steps_to_left_up];
+    for (let i = 0; i < steps_to_left_up + steps_to_right_down + 1; i++) {
+        const currentValue = board[row - steps_to_left_up + i][column - steps_to_left_up + i];
+        if (currentValue != current_player) {
+            count = 1;
+            current_player = currentValue;
+        } else if (currentValue != 0) {
+            count++;
+        }
+
+        if (count == 4) {
+            return current_player;
+        }
+    }
+    return 0;
+}
+
 </script>
 
 <template>
@@ -110,7 +186,7 @@ function gameStateUpdate(state: Array<Array<number>>) {
         :is-running="isRunning"
         :is-spectator="isSpectator"
         :player-symbol="playerSymbol"
-        :game-winner="gameWinner"
+        :game-winner="gameWinner == 1 ? 'Red' : (gameWinner == 2 ? 'Blue' : '')"
         :my-turn="myTurn"
     />
 
@@ -120,7 +196,7 @@ function gameStateUpdate(state: Array<Array<number>>) {
       <GameBoard v-if="isRunning" :board="board.state" :onClick="sendClick"/>
     </div>
 
-    <div v-if="gameWinner != ''" class="flex justify-center items-center mb-4">
+    <div v-if="gameWinner != 0" class="flex justify-center items-center mb-4">
       <SimpleButton @click="playAgain">
         Click here to play again!
       </SimpleButton>

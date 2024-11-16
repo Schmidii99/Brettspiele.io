@@ -97,15 +97,17 @@ async function makeMove(info: {gameType: string, gameId: string}, column: number
     let winner = 0;
 
     // make move
-    for (let i = 1; i < 6; i++) {
+    const playerNum: 1 | 2 = (game.players[session] as any)["symbol"] == "X" ? 1 : 2;
+    for (let i = 0; i < 6; i++) {
         if (game.gameState.state[i][column] != 0) {
-            game.gameState.state[i - 1][column] = (game.players[session] as any)["symbol"] == "X" ? 1 : 2;
+            game.gameState.state[i - 1][column] = playerNum;
             await redisClient.json.set(`${info.gameType}:${info.gameId}`, "$.gameState.state", game.gameState.state);
 
             // check for winner
-            winner = checkForWin(i, column, game.gameState.state);
+            winner = checkForWin(i - 1, column, game.gameState.state);
             break;
-        } else if (i == 5) {
+        }
+        else if (i == 5) {
             game.gameState.state[i][column] = (game.players[session] as any)["symbol"] == "X" ? 1 : 2;
             await redisClient.json.set(`${info.gameType}:${info.gameId}`, "$.gameState.state", game.gameState.state);
 
@@ -116,7 +118,7 @@ async function makeMove(info: {gameType: string, gameId: string}, column: number
 
     if (winner != 0) {
         await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.gameState.gameStatus`, "ended");
-        await redisClient.publish(`${info.gameType}:${info.gameId}:chat`, "Player " + (winner == 1 ? " X " : " O ") + "has won!");
+        await redisClient.publish(`${info.gameType}:${info.gameId}:chat`, "Player " + (winner == 1 ? " Red " : " Blue ") + "has won!");
         await redisClient.json.arrAppend(`${info.gameType}:${info.gameId}`, `$.chat`, "Player " + (winner == 1 ? " X " : " O ") + "has won!");
     } else {
         // game did not end yet
@@ -142,6 +144,75 @@ async function makeMove(info: {gameType: string, gameId: string}, column: number
     await redisClient.publish(`${info.gameType}:${info.gameId}:gamestate`, JSON.stringify(game.gameState.state));
 }
 
-function checkForWin(row: number, ycolumn: number, board: Array<Array<number>>): number {
+function checkForWin(row: number, column: number, board: Array<Array<number>>): number {
+    // check row
+    let count = 0;
+    let current_player = board[row][0];
+    for (let i = 0; i < board[row].length; i++) {
+        if (board[row][i] != current_player) {
+            count = 1;
+            current_player = board[row][i];
+        } else if (board[row][i] != 0) {
+            count++;
+        }
+
+        if (count == 4) {
+            return current_player;
+        }
+    }
+    count = 0;
+    current_player = board[0][column];
+    // check column
+    for (let i = 0; i < board.length; i++) {
+        if (board[i][column] != current_player) {
+            count = 1;
+            current_player = board[i][column];
+        } else if (board[i][column] != 0) {
+            count++;
+        }
+
+        if (count == 4) {
+            return current_player;
+        }
+    }
+
+    // check left down to right up
+    const steps_to_left_down = Math.min(6 - (row + 1), (column));
+    const steps_to_right_up = Math.min((row), 6 - (column));
+
+    count = 0;
+    current_player = board[row + steps_to_left_down][column - steps_to_left_down];
+    for (let i = 0; i < steps_to_left_down + steps_to_right_up + 1; i++) {
+        if (board[row + steps_to_left_down - i][column - steps_to_left_down + i] != current_player) {
+            count = 1;
+            current_player = board[row + steps_to_left_down - i][column - steps_to_left_down + i];
+        } else if (board[row + steps_to_left_down - i][column - steps_to_left_down + i] != 0) {
+            count++;
+        }
+
+        if (count == 4) {
+            return current_player;
+        }
+    }
+
+    // check left up to right down
+    const steps_to_left_up = Math.min(row, column);
+    const steps_to_right_down = Math.min((5 - row), (6 - column))
+
+    count = 0;
+    current_player = board[row - steps_to_left_up][column - steps_to_left_up];
+    for (let i = 0; i < steps_to_left_up + steps_to_right_down + 1; i++) {
+        const currentValue = board[row - steps_to_left_up + i][column - steps_to_left_up + i];
+        if (currentValue != current_player) {
+            count = 1;
+            current_player = currentValue;
+        } else if (currentValue != 0) {
+            count++;
+        }
+
+        if (count == 4) {
+            return current_player;
+        }
+    }
     return 0;
 }
