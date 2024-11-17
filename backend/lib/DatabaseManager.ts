@@ -16,7 +16,7 @@ export async function getGame(gameType: string, gameId: string): Promise<Game | 
 }
 
 export async function createGame(gameType: string, gameId: string) {
-  await redisClient.json.set("tictactoe:" + gameId, "$", getNewGame(gameType));
+  await redisClient.json.set(gameType + ":" + gameId, "$", getNewGame(gameType));
 }
 
 export async function addPlayer(gameType: string, gameId: string, session: string): Promise<void> {
