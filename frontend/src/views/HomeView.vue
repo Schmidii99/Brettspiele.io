@@ -51,10 +51,10 @@
                     </div>
                 </div>
                 <div class="flex items-start space-x-4">
-                    <div class="text-2xl">🔒</div>
+                    <div class="text-2xl">🫵</div>
                     <div>
-                        <h3 class="text-xl font-bold mb-2">Privacy First</h3>
-                        <p class="text-gray-600">No cookies, no tracking, pure entertainment</p>
+                        <h3 class="text-xl font-bold mb-2">Users first</h3>
+                        <p class="text-gray-600">We listen to YOUR suggestions</p>
                     </div>
                 </div>
                 <div class="flex items-start space-x-4">
