@@ -8,6 +8,7 @@
             <a href="/" class="text-2xl font-bold">BoardGames Live 🎲</a>
             <div class="space-x-4">
                 <a href="/tictactoe" class="hover:text-blue-200">Tictactoe</a>
+                <a href="/connect4" class="hover:text-blue-200">Connect Four</a>
                 <a href="/about" class="hover:text-blue-200">About</a>
             </div>
         </div>
