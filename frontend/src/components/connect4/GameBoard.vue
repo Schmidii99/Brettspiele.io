@@ -18,8 +18,8 @@ function getColor(value: number): string {
 </script>
 
 <template>
-  <div class="flex flex-col">
-  <div class="flex flex-row p-4"> 
+  <div class="flex flex-col justify-center items-center">
+  <div class="flex flex-row p-4 lg:block hidden"> 
     <GameChip v-for="n in 7" :key="n" :class="'w-16 aspect-square mx-2 ' + (hoverArray[n - 1] == 0 ? 'invisible' : 'visible')" />
   </div>
   <div v-if="board" class="flex flex-row bg-gray-500 w-fit rounded-2xl p-4">
@@ -33,7 +33,7 @@ function getColor(value: number): string {
       <div
         v-for="r, r_index in board.length"
         :key="r_index + '|' + c_index"
-        :class="'rounded-full aspect-square w-16 m-2 ' + getColor(board[r_index][c_index])"
+        :class="'rounded-full aspect-square w-8 lg:w-16 m-2 ' + getColor(board[r_index][c_index])"
       >
         <GameChip v-if="board[r_index][c_index] != 0" />
       </div>
