@@ -1,4 +1,5 @@
 export enum GameTypes {
     "tictactoe",
-    "connect4"
+    "connect4",
+    "memory"
 }
