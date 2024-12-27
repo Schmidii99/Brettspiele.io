@@ -1,7 +1,7 @@
-import {addPlayer, disconnectPlayer, getGame, redisClient} from "./DatabaseManager.ts";
-import {getRandomInt} from "./helper.ts";
+import {addPlayer, disconnectPlayer, getGame, redisClient} from "../DatabaseManager.ts";
+import {getRandomInt} from "../helper.ts";
 import * as log from "log";
-import {processChatChange} from "../main.ts";
+import {processChatChange} from "../../main.ts";
 import { type Socket } from "socket_io";
 
 export async function initTicTacToe(info: { gameType: string; gameId: string }, socket: Socket, game: any, session: string, subscriber: any): Promise<void> {
