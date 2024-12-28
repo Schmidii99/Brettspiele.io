@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { filename } from 'pathe/utils';
-import { ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   size: string,
@@ -10,13 +10,29 @@ const props = defineProps<{
 
 const imageNumber = ref(props.imgNum);
 
+watch(
+  () => props.imgNum,
+  () => {
+    console.log("imgNum changed!", props.imgNum);
+    imageNumber.value = props.imgNum;
+    flip();
+  }
+);
+
+onMounted(async () => {
+  if (props.imgNum != 0) {
+    setTimeout(function(){
+      flip();
+    }, 300);
+  }
+})
+
 const glob = import.meta.glob('@/assets/memory/images/*.webp', { eager: true });
 const images = Object.fromEntries(
   Object.entries(glob).map(([key, value]) => [filename(key), value.default])
 );
 
 function flip() {
-  console.log('flip');
   if (cardRef.value.classList.contains("rotated")) {
     cardRef.value.classList.remove("rotated");
   } else {
