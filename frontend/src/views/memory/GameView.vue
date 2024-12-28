@@ -2,7 +2,7 @@
 import { generateRandomString, getFullLink } from '@/lib/helper'
 import LinkDisplay from '@/components/games/LinkDisplay.vue'
 import SimpleButton from '@/components/SimpleButton.vue'
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
 import { MAX_GAME_ID_LEN } from '@/config'
 import { openSocket } from '@/lib/socketManager'
 import { useRoute, useRouter } from 'vue-router'
@@ -14,18 +14,20 @@ const currentRouter = useRouter()
 // css properties for different board sizes
 const widths = { 6: 'w-24', 8: 'w-20', 10: 'w-16' }
 // represents side length of board
-const n = ref(8)
-const isRunning = ref(false)
+const n = ref(8);
+const isRunning = ref(false);
 let socket: null | Socket
-const myTurn = ref(false)
-const isSpectator = ref(false)
-const playerSymbol = ref('')
-const gameWinner = ref(0)
+const myTurn = ref(false);
+const isSpectator = ref(false);
+const playerSymbol = ref('');
+const gameWinner = ref(0);
 const board = ref({
   state: Array.from({ length: n.value * n.value }, () => 0),
-})
+});
 // all selected imgs
-const highlighted = ref([])
+const highlighted = ref([]);
+// refs to all cards in dom
+const cardRefs = useTemplateRef("cards");
 
 onMounted(async () => {
   // validate game id
@@ -47,23 +49,29 @@ onUnmounted(() => {
 })
 
 function afterConnect() {
-  if (socket == null) return
+  if (socket == null) return;
 
   // listen to events
-  socket.on('gameStateUpdate', gameStateUpdate)
+  socket.on('gameStateUpdate', gameStateUpdate);
   socket.on('playerType', (type: Array<string>) => {
     if (type[0] == 'spectator') isSpectator.value = true
     else {
       playerSymbol.value = type[1]
       myTurn.value = playerSymbol.value != 'X'
     }
-  })
+  });
+  socket.on("revealCards", (args: Array<{index: number, value: number}>) => {
+    args = JSON.parse(args);
+    args.forEach((el: {index: number, value: number}) => {
+      revealCard(el.index, el.value);
+    });
+  });
 
   // send gameInfo to server
   socket.emit('gameInfo', {
     gameType: 'memory',
     gameId: route.params['gameid'],
-  })
+  });
 }
 
 function gameStateUpdate(state: Array<Array<number>>) {
@@ -101,7 +109,6 @@ function sendCLick(index1: number, index2: number) {
   }
 
   // send click
-  console.log('Sending move!')
   socket?.emit('makeMove', { index1: index1, index2: index2 })
 }
 
@@ -113,13 +120,9 @@ function changeBoardSize() {
   socket?.emit("changeBoardSize", {size: n.value});
 }
 
-function onRevealEvent(index1: number, index2: number) {
-  revealCard(index1);
-  revealCard(index2);
-}
-
-function revealCard(index: number) {
-
+async function revealCard(index: number, img: number) {
+  // intentionally not awaited
+  cardRefs.value[index].temporaryFlip(img);
 }
 </script>
 
@@ -158,12 +161,12 @@ function revealCard(index: number) {
       >
         <FlipCard
           v-for="j in n"
-          :ref="((i - 1) * n + j - 1)"
+          ref="cards"
           :key="j"
           :size="widths[n]"
           :highlighted="(highlighted.indexOf((i - 1) * n + j - 1) != -1)"
           @click="onClick((i - 1) * n + j - 1)"
-          img-num="0"
+          img-num="12"
         ></FlipCard>
       </div>
     </div>

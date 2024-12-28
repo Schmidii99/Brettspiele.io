@@ -26,7 +26,8 @@ function flip() {
 
 const cardRef = ref<HTMLDivElement>(null);
 
-function temporaryFlip(imgNumber: number) {
+async function temporaryFlip(imgNumber: number) {
+  const oldImg: number = imageNumber.value;
   imageNumber.value = imgNumber;
 
   if (cardRef.value.classList.contains("rotated")) {
@@ -34,6 +35,14 @@ function temporaryFlip(imgNumber: number) {
   } else {
     cardRef.value.classList.add("rotated");
   }
+
+  setTimeout(function(){
+    flip();
+    // wait a bit until backside is changed back
+    setTimeout(function(){
+      imageNumber.value = oldImg;
+    }, 300);
+  }, 3000); // time until card is flipped back
 }
 // exposes the flip function to parent components
 defineExpose({flip, temporaryFlip});
