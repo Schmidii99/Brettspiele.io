@@ -4,11 +4,7 @@ import {shuffleArray} from "./helper.ts";
 export type Game = {
   currentTurn: string;
   players: { [session: string]: {status: "connected" | "disconnected"} };
-  gameState: {
-    gameStatus: "lobby" | "running" | "ended";
-    // deno-lint-ignore no-explicit-any
-    state: any;
-  };
+  gameState: any;
   chat: Array<string>;
   hiddenState: any;
 }
@@ -50,6 +46,7 @@ export function createMemoryGame(size: number) {
     (baseGame.hiddenState as Array<number>).push(i);
   }
   shuffleArray(baseGame.hiddenState);
+  baseGame.gameState.scores = [0, 0];
 
   return baseGame;
 }
