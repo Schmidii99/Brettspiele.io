@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { filename } from 'pathe/utils';
+import { ref } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   size: string,
   imgNum: string,
   highlighted: boolean
 }>();
+
+const imageNumber = ref(props.imgNum);
 
 const glob = import.meta.glob('@/assets/memory/images/*.webp', { eager: true });
 const images = Object.fromEntries(
@@ -13,32 +16,51 @@ const images = Object.fromEntries(
 );
 
 function flip() {
-  if (document.getElementById("card").classList.contains("rotated")) {
-    document.getElementById("card").classList.remove("rotated");
+  console.log('flip');
+  if (cardRef.value.classList.contains("rotated")) {
+    cardRef.value.classList.remove("rotated");
   } else {
-    document.getElementById("card").classList.add("rotated");
+    cardRef.value.classList.add("rotated");
+  }
+}
+
+const cardRef = ref<HTMLDivElement>(null);
+
+function temporaryFlip(imgNumber: number) {
+  imageNumber.value = imgNumber;
+
+  if (cardRef.value.classList.contains("rotated")) {
+    cardRef.value.classList.remove("rotated");
+  } else {
+    cardRef.value.classList.add("rotated");
   }
 }
 // exposes the flip function to parent components
-defineExpose({flip});
+defineExpose({flip, temporaryFlip});
 </script>
 
 <template>
   <div :class="'bg-transparent flip-card aspect-square hover:cursor-pointer hover:scale-110 '
                + size + (highlighted ? ' highlighted' : '')"
-       id="card"
+       ref="cardRef"
 
   >
     <div class="flip-card-inner">
       <div class="flip-card-front">
-        <img src="@/assets/pattern.jpg" alt="Avatar" :class="size + ' aspect-square'" />
+        <img src="@/assets/memory/images/0.webp" alt="Avatar" :class="size + ' aspect-square'" />
       </div>
       <div class="flip-card-back">
-        <img :src="images[imgNum]" alt="image" :class="size" />
+        <img :src="images[imageNumber]" alt="image" :class="size" />
       </div>
     </div>
   </div>
 </template>
+
+<style>
+.rotated .flip-card-inner {
+  transform: rotateY(180deg);
+}
+</style>
 
 <style scoped>
 .flip-card {
@@ -53,10 +75,6 @@ defineExpose({flip});
   transition: transform 0.6s;
   transform-style: preserve-3d;
   box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
-}
-
-.rotated .flip-card-inner {
-  transform: rotateY(180deg);
 }
 
 .flip-card-front, .flip-card-back {
