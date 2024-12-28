@@ -41,7 +41,7 @@ export function createMemoryGame(size: number) {
   // visible cards for the users
   baseGame.gameState.state = Array.from({ length: size * size }, () => 0);
   baseGame.hiddenState = [];
-  for (let i = 0; i < (size * size / 2); i++) {
+  for (let i = 1; i < (size * size / 2) + 1; i++) {
     (baseGame.hiddenState as Array<number>).push(i);
     (baseGame.hiddenState as Array<number>).push(i);
   }
