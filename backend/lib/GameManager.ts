@@ -3,7 +3,9 @@ import {shuffleArray} from "./helper.ts";
 
 export type Game = {
   currentTurn: string;
-  players: { [session: string]: {status: "connected" | "disconnected"} };
+  players: { [session: string]: {
+    symbol: string;status: "connected" | "disconnected"
+} };
   gameState: any;
   chat: Array<string>;
   hiddenState: any;
@@ -46,7 +48,8 @@ export function createMemoryGame(size: number) {
     (baseGame.hiddenState as Array<number>).push(i);
   }
   shuffleArray(baseGame.hiddenState);
-  baseGame.gameState.scores = [0, 0];
+  // [player X score, player O score, player X pairs, player O pairs]
+  baseGame.gameState.scores = [0, 0, [], []];
 
   return baseGame;
 }

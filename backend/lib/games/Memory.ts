@@ -3,7 +3,7 @@ import {getRandomInt} from "../helper.ts";
 import * as log from "log";
 import {processChatChange} from "../../main.ts";
 import { type Socket } from "socket_io";
-import {createMemoryGame, getNewGame} from "../GameManager.ts";
+import {createMemoryGame} from "../GameManager.ts";
 
 export async function initMemory(info: { gameType: string; gameId: string }, socket: Socket, game: any, session: string, subscriber: any): Promise<void> {
     socket.on("makeMove", (args: {index1: number, index2: number}) => makeMove(info, args.index1, args.index2, session, socket));
@@ -87,26 +87,38 @@ async function makeMove(info: {gameType: string, gameId: string}, index1: number
 
     // check if a pair was clicked or not
     if (game.hiddenState[index1] == game.hiddenState[index2]) {
+        // set revealed indices
         game.gameState.state[index1] = game.hiddenState[index1];
         game.gameState.state[index2] = game.hiddenState[index2];
+        // increase score and add num to pairs of this player
+        if (game.players[session].symbol as string == "X") {
+            game.gameState.scores[0]++;
+            game.gameState.scores[2].push(game.hiddenState[index1]);
+        } else {
+            game.gameState.scores[1]++;
+            game.gameState.scores[3].push(game.hiddenState[index1]);
+        }
 
-        await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.gameState.state`, game.gameState.state);
+        await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.gameState`, game.gameState);
+
+        // end game if over
+        if (checkForWin(game.gameState.state, game.gameState.scores[0], game.gameState.scores[1]) != 0) {
+            await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.gameState.gameStatus`, "ended");
+        }
     } else {
         // the clicked pair is not the same card
         await redisClient.publish(`${info.gameType}:${info.gameId}:reveal`, JSON.stringify([
             {index: index1, value: game.hiddenState[index1]},
             {index: index2, value: game.hiddenState[index2]}
         ]));
+
+        // get session after current player
+        const allSessions = Object.keys(game.players);
+        const nextPlayerIndex = (allSessions.indexOf(session) + 1) % allSessions.length;
+
+        // set next player
+        await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.currentTurn`, allSessions[nextPlayerIndex]);
     }
-
-
-
-    // get session after current player
-    const allSessions = Object.keys(game.players);
-    const nextPlayerIndex = (allSessions.indexOf(session) + 1) % allSessions.length;
-
-    // set next player
-    await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.currentTurn`, allSessions[nextPlayerIndex]);
 
     // publish gamestate
     await redisClient.publish(`${info.gameType}:${info.gameId}:gamestate`, JSON.stringify(game.gameState));
