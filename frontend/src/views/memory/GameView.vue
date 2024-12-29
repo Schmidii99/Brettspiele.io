@@ -17,7 +17,7 @@ const widths = { 6: 'w-24', 8: 'w-20', 10: 'w-16' }
 const n = ref(8)
 const isRunning = ref(false)
 let socket: null | Socket
-const myTurn = ref(false)
+const myTurn = ref(null)
 const isSpectator = ref(false)
 const playerSymbol = ref('')
 const gameWinner = ref(0)
@@ -57,7 +57,7 @@ function afterConnect() {
     if (type[0] == 'spectator') isSpectator.value = true
     else {
       playerSymbol.value = type[1]
-      myTurn.value = playerSymbol.value != 'X'
+      myTurn.value = playerSymbol.value == 'X'
     }
   })
   socket.on('revealCards', (args: Array<{ index: number; value: number }>) => {
@@ -75,16 +75,33 @@ function afterConnect() {
 }
 
 function gameStateUpdate(update: { gameStatus: string, state: Array<number>, scores: Array<number>, yourTurn: boolean }) {
-  console.log("gameStateUpdate", update);
+  // check if other size is selected
+  if (update.state.length != board.value.state.length) {
+    n.value = Math.sqrt(update.state.length);
+    console.log("Changed size to "+  n.value, update.state.length, board.value.state.length);
+    board.value.state = Array.from({ length: update.state.length }, () => 0);
+  }
+
+  if (myTurn.value == null) {
+    myTurn.value = update.yourTurn;
+  }
+
+  // track change
+  let sthChanged = false;
   isRunning.value = true
   for (let i = 0; i < update.state.length; i++) {
     if (board.value.state[i] != update.state[i]) {
-      console.log("changed index: " + i);
-      board.value.state[i] = update.state[i]
-      // console.log(cardRefs.value)
-      // cardRefs.value[i].flip();
+      console.log(board.value.state[i], update.state[i]);
+      board.value.state[i] = update.state[i];
+      sthChanged = true;
+      console.log("index " + i + " changed");
     }
   }
+
+  if (sthChanged) {
+    myTurn.value = !myTurn.value;
+  }
+
   board.value.state = update.state
 }
 
@@ -138,6 +155,15 @@ async function revealCard(index: number, img: number) {
   <div class="flex flex-col justify-center items-center">
     <LinkDisplay v-if="!isRunning" :full-link="getFullLink()" />
     <div v-if="isSpectator">Your are Spectating</div>
+    <div v-show="!isSpectator" class="w-full flex flex-col justify-center items-center m-1 text-2xl">
+      <div class="flex justify-center items-center">
+        <span class="mr-1">{{ playerSymbol == 'X' ? "Your Player " : "Your Player"}}</span>
+        <span :class="playerSymbol == 'X' ? 'text-red-500' : 'text-blue-600'"
+          >{{ playerSymbol == 'X' ? "Red" : "Blue"}}
+        </span>
+      </div>
+      <span>{{ myTurn ? "Your turn!" : "Opponents turn!" }}</span>
+    </div>
 
     <div
       v-if="!isRunning"
