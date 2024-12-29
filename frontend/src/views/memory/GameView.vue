@@ -2,7 +2,7 @@
 import { generateRandomString, getFullLink } from '@/lib/helper'
 import LinkDisplay from '@/components/games/LinkDisplay.vue'
 import SimpleButton from '@/components/SimpleButton.vue'
-import { nextTick, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
+import { onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
 import { MAX_GAME_ID_LEN } from '@/config'
 import { openSocket } from '@/lib/socketManager'
 import { useRoute, useRouter } from 'vue-router'
@@ -21,6 +21,7 @@ const myTurn = ref(null)
 const isSpectator = ref(false)
 const playerSymbol = ref('')
 const gameWinner = ref(0)
+const scores = ref([0, 0, [], []])
 const board = ref({
   state: Array.from({ length: n.value * n.value }, () => 0),
 })
@@ -64,7 +65,8 @@ function afterConnect() {
     args = JSON.parse(args)
     args.forEach((el: { index: number; value: number }) => {
       revealCard(el.index, el.value)
-    })
+    });
+    myTurn.value = !myTurn.value;
   })
 
   // send gameInfo to server
@@ -74,11 +76,11 @@ function afterConnect() {
   })
 }
 
-function gameStateUpdate(update: { gameStatus: string, state: Array<number>, scores: Array<number>, yourTurn: boolean }) {
+function gameStateUpdate(update: { gameStatus: string, state: Array<number>, scores: Array<number | Array<number>>, yourTurn: boolean }) {
+  console.log(update)
   // check if other size is selected
   if (update.state.length != board.value.state.length) {
     n.value = Math.sqrt(update.state.length);
-    console.log("Changed size to "+  n.value, update.state.length, board.value.state.length);
     board.value.state = Array.from({ length: update.state.length }, () => 0);
   }
 
@@ -86,26 +88,26 @@ function gameStateUpdate(update: { gameStatus: string, state: Array<number>, sco
     myTurn.value = update.yourTurn;
   }
 
-  // track change
-  let sthChanged = false;
   isRunning.value = true
   for (let i = 0; i < update.state.length; i++) {
     if (board.value.state[i] != update.state[i]) {
-      console.log(board.value.state[i], update.state[i]);
       board.value.state[i] = update.state[i];
-      sthChanged = true;
-      console.log("index " + i + " changed");
     }
   }
 
-  if (sthChanged) {
-    myTurn.value = !myTurn.value;
-  }
-
+  scores.value = update.scores;
   board.value.state = update.state
 }
 
 function onClick(index: number) {
+  // if is not my turn then no highlight
+  if (myTurn.value == null || !myTurn.value) { return; }
+
+  // check if card is locked (locked = temp flip currently done)
+  if (cardRefs.value[index].isLocked()) {
+    return;
+  }
+
   const arrayIndex = highlighted.value.indexOf(index)
   if (arrayIndex > -1) {
     if (index !== -1) {
@@ -127,7 +129,6 @@ function sendCLick(index1: number, index2: number) {
     return
   }
 
-  console.log(index1, index2, board.value.state)
   // client side prevention of clicking fields that are already filled
   if (board.value.state[index1] != 0 || board.value.state[index2] != 0) {
     return
@@ -149,24 +150,41 @@ async function revealCard(index: number, img: number) {
   // intentionally not awaited
   cardRefs.value[index].temporaryFlip(img)
 }
+
+function getBorder(index: number) {
+  const value = board.value.state[index];
+  if (scores.value[2].indexOf(value) != -1) {
+    return "red";
+  }
+  if (scores.value[3].indexOf(value) != -1) {
+    return "blue";
+  }
+  return "";
+}
 </script>
 
 <template>
   <div class="flex flex-col justify-center items-center">
     <LinkDisplay v-if="!isRunning" :full-link="getFullLink()" />
     <div v-if="isSpectator">Your are Spectating</div>
-    <div v-show="!isSpectator" class="w-full flex flex-col justify-center items-center m-1 text-2xl">
+    <div v-show="!isSpectator && isRunning" class="w-full flex flex-col justify-center items-center m-1 text-2xl">
       <div class="flex justify-center items-center">
-        <span class="mr-1">{{ playerSymbol == 'X' ? "Your Player " : "Your Player"}}</span>
+        <span class="mr-2">{{ playerSymbol == 'X' ? "Your Player " : "Your Player"}}</span>
         <span :class="playerSymbol == 'X' ? 'text-red-500' : 'text-blue-600'"
           >{{ playerSymbol == 'X' ? "Red" : "Blue"}}
         </span>
       </div>
       <span>{{ myTurn ? "Your turn!" : "Opponents turn!" }}</span>
     </div>
+    <div v-show="isRunning" class="flex space-x-2 text-2xl">
+      <span>Score: </span>
+      <span class="text-red-500">{{scores[0]}}</span>
+      <span>-</span>
+      <span class="text-blue-600">{{scores[1]}}</span>
+    </div>
 
     <div
-      v-if="!isRunning"
+      v-show="!isRunning"
       class="flex items-center justify-center space-x-1 lg:space-x-3"
     >
       <span>Choose a board size:</span>
@@ -215,6 +233,7 @@ async function revealCard(index: number, img: number) {
           :highlighted="highlighted.indexOf((i - 1) * n + j - 1) != -1"
           @click="onClick((i - 1) * n + j - 1)"
           :img-num="'' + board.state[(i - 1) * n + j - 1]"
+          :border="getBorder((i - 1) * n + j - 1)"
         ></FlipCard>
       </div>
     </div>

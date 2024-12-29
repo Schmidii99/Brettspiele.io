@@ -5,10 +5,12 @@ import { onMounted, ref, watch } from 'vue'
 const props = defineProps<{
   size: string,
   imgNum: string,
-  highlighted: boolean
+  highlighted: boolean,
+  border: "red" | "blue" | ""
 }>();
 
 const imageNumber = ref(props.imgNum);
+let flipLock = false;
 
 watch(
   () => props.imgNum,
@@ -33,16 +35,24 @@ const images = Object.fromEntries(
 );
 
 function flip() {
+  if (flipLock) return;
+
   if (cardRef.value.classList.contains("rotated")) {
     cardRef.value.classList.remove("rotated");
+    cardRef.value.classList.remove("custom-border-red");
+    cardRef.value.classList.remove("custom-border-blue");
+    cardRef.value.classList.remove("custom-border-");
   } else {
     cardRef.value.classList.add("rotated");
+    console.log("setting class: custom-border-" + props.border)
+    cardRef.value.classList.add("custom-border-" + props.border);
   }
 }
 
 const cardRef = ref<HTMLDivElement>(null);
 
 async function temporaryFlip(imgNumber: number) {
+  flipLock = true;
   const oldImg: number = imageNumber.value;
   imageNumber.value = imgNumber;
 
@@ -53,6 +63,7 @@ async function temporaryFlip(imgNumber: number) {
   }
 
   setTimeout(function(){
+    flipLock = false;
     flip();
     // wait a bit until backside is changed back
     setTimeout(function(){
@@ -60,22 +71,26 @@ async function temporaryFlip(imgNumber: number) {
     }, 300);
   }, 3000); // time until card is flipped back
 }
+
+function isLocked() {
+  return flipLock;
+}
 // exposes the flip function to parent components
-defineExpose({flip, temporaryFlip});
+defineExpose({flip, temporaryFlip, isLocked});
 </script>
 
 <template>
-  <div :class="'bg-transparent flip-card aspect-square hover:cursor-pointer hover:scale-110 '
-               + size + (highlighted ? ' highlighted' : '')"
+  <div :class="'bg-transparent flip-card aspect-square '
+               + (imgNum == 0 ? ' hover:cursor-pointer hover:scale-110 ' : ' ')
+               + size + (highlighted ? ' highlighted ' : ' ')"
        ref="cardRef"
-
   >
     <div class="flip-card-inner">
       <div class="flip-card-front">
-        <img src="@/assets/memory/images/0.webp" alt="Avatar" :class="size + ' aspect-square'" />
+        <img src="@/assets/memory/images/0.webp" alt="Avatar" class="w-full h-full" />
       </div>
-      <div class="flip-card-back">
-        <img :src="images[imageNumber]" alt="image" :class="size" />
+      <div class="flip-card-back bg-blue">
+        <img :src="images[imageNumber]" alt="image" class="w-full h-full" />
       </div>
     </div>
   </div>
@@ -84,6 +99,16 @@ defineExpose({flip, temporaryFlip});
 <style>
 .rotated .flip-card-inner {
   transform: rotateY(180deg);
+}
+.custom-border-blue {
+  -webkit-box-shadow: 0rem 0rem 0.5rem 0.2rem rgb(37, 99, 235,.7);
+  -moz-box-shadow: 0rem 0rem 0.5rem 0.2rem rgb(37, 99, 235,.7);
+  box-shadow: 0rem 0rem 0.5rem 0.2rem rgb(37, 99, 235,.7);
+}
+.custom-border-red {
+  -webkit-box-shadow: 0rem 0rem 0.5rem 0.2rem rgb(239, 68, 68,.7);
+  -moz-box-shadow: 0rem 0rem 0.5rem 0.2rem rgb(239, 68, 68,.7);
+  box-shadow: 0rem 0rem 0.5rem 0.2rem rgb(239, 68, 68,.7);
 }
 </style>
 
