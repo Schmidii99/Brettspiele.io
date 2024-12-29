@@ -79,8 +79,6 @@ async function makeMove(info: {gameType: string, gameId: string}, index1: number
     // get current game state
     const game = await getGame(info.gameType, info.gameId);
     if (game == null) { return; }
-    console.log(game.gameState.gameStatus);
-    console.log(game.currentTurn + " vs session: " + session);
     // check if player is allowed to make a move
     if (game.currentTurn != session || game.gameState.gameStatus != "running") { return; }
 
@@ -88,14 +86,11 @@ async function makeMove(info: {gameType: string, gameId: string}, index1: number
     if (game.gameState.state[index1] != 0 || game.gameState.state[index2] != 0) { return; }
 
     // check if a pair was clicked or not
-
-    console.log(game.hiddenState[index1], game.hiddenState[index2]);
-
     if (game.hiddenState[index1] == game.hiddenState[index2]) {
         game.gameState.state[index1] = game.hiddenState[index1];
         game.gameState.state[index2] = game.hiddenState[index2];
 
-        await redisClient.publish(`${info.gameType}:${info.gameId}:gamestate`, JSON.stringify(game.gameState.state));
+        await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.gameState.state`, game.gameState.state);
     } else {
         // the clicked pair is not the same card
         await redisClient.publish(`${info.gameType}:${info.gameId}:reveal`, JSON.stringify([
@@ -105,15 +100,16 @@ async function makeMove(info: {gameType: string, gameId: string}, index1: number
     }
 
 
+
     // get session after current player
-    // const allSessions = Object.keys(game.players);
-    // const nextPlayerIndex = (allSessions.indexOf(session) + 1) % allSessions.length;
+    const allSessions = Object.keys(game.players);
+    const nextPlayerIndex = (allSessions.indexOf(session) + 1) % allSessions.length;
 
     // set next player
-    // await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.currentTurn`, allSessions[nextPlayerIndex]);
+    await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.currentTurn`, allSessions[nextPlayerIndex]);
 
     // publish gamestate
-    // await redisClient.publish(`${info.gameType}:${info.gameId}:gamestate`, JSON.stringify(game.gameState.state));
+    await redisClient.publish(`${info.gameType}:${info.gameId}:gamestate`, JSON.stringify(game.gameState));
 }
 
 function checkForWin(board: Array<number>, score1: number, score2: number): number {
