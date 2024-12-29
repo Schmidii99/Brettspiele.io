@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { filename } from 'pathe/utils';
-import { onMounted, ref, watch } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   size: string,
@@ -14,9 +14,11 @@ let flipLock = false;
 
 watch(
   () => props.imgNum,
-  () => {
+  async () => {
     console.log("imgNum changed!", props.imgNum);
     imageNumber.value = props.imgNum;
+    // await nextTick otherwise the flip animation is broken
+    await nextTick()
     flip();
   }
 );
