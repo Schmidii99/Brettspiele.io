@@ -12,7 +12,7 @@ import FlipCard from '@/components/memory/FlipCard.vue'
 const route = useRoute()
 const currentRouter = useRouter()
 // css properties for different board sizes
-const widths = { 6: 'w-24', 8: 'w-20', 10: 'w-16' }
+const widths = { 6: 'md:w-24 w-12', 8: 'md:w-20 w-10', 10: 'md:w-16 w-4' }
 // represents side length of board
 const n = ref(8)
 const isRunning = ref(false)
@@ -97,6 +97,7 @@ function gameStateUpdate(update: { gameStatus: string, state: Array<number>, sco
 
   scores.value = update.scores;
   board.value.state = update.state
+  checkAndSetWinner();
 }
 
 function onClick(index: number) {
@@ -161,6 +162,17 @@ function getBorder(index: number) {
   }
   return "";
 }
+
+function checkAndSetWinner() {
+  for (let i = 0; i < board.value.state.length; i++) {
+    if (board.value.state[i] == 0) {
+      gameWinner.value = 0;
+      return;
+    }
+  }
+
+  gameWinner.value = scores.value[0] > scores.value[1] ? 1 : 2;
+}
 </script>
 
 <template>
@@ -182,10 +194,15 @@ function getBorder(index: number) {
       <span>-</span>
       <span class="text-blue-600">{{scores[1]}}</span>
     </div>
+    <div v-show="isRunning && gameWinner != 0" class="flex space-x-2 text-2xl">
+      <span class="mr-2">Game over -</span>
+      <span v-show="(gameWinner == 1) == (playerSymbol == 'X')" class="text-blue-600">You Won!</span>
+      <span v-show="(gameWinner == 1) != (playerSymbol == 'X')" class="text-red-500">You Lost!</span>
+    </div>
 
     <div
       v-show="!isRunning"
-      class="flex items-center justify-center space-x-1 lg:space-x-3"
+      class="flex md:flex-row flex-col items-center justify-center space-x-1 lg:space-x-3"
     >
       <span>Choose a board size:</span>
       <SimpleButton

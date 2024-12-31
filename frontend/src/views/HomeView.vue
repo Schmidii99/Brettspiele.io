@@ -31,7 +31,7 @@
             </GameDisplay>
             <GameDisplay :disabled="true" :title="'Skill checks'" :description="'Hit the circle in the right time and practise for DBD or Outlast Trials.'">
               <template v-slot:icon>
-                <img class="w-10 aspect-square" src="@/assets/icons/memory.png">
+                <span>?</span>
               </template>
             </GameDisplay>
         </div>
