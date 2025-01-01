@@ -77,7 +77,6 @@ function afterConnect() {
 }
 
 function gameStateUpdate(update: { gameStatus: string, state: Array<number>, scores: Array<number | Array<number>>, yourTurn: boolean }) {
-  console.log(update)
   // check if other size is selected
   if (update.state.length != board.value.state.length) {
     n.value = Math.sqrt(update.state.length);
@@ -186,7 +185,7 @@ function checkAndSetWinner() {
           >{{ playerSymbol == 'X' ? "Red" : "Blue"}}
         </span>
       </div>
-      <span>{{ myTurn ? "Your turn!" : "Opponents turn!" }}</span>
+      <span v-show="gameWinner == 0">{{ myTurn ? "Your turn!" : "Opponents turn!" }}</span>
     </div>
     <div v-show="isRunning" class="flex space-x-2 text-2xl">
       <span>Score: </span>
@@ -194,10 +193,15 @@ function checkAndSetWinner() {
       <span>-</span>
       <span class="text-blue-600">{{scores[1]}}</span>
     </div>
-    <div v-show="isRunning && gameWinner != 0" class="flex space-x-2 text-2xl">
+    <div v-show="isRunning && gameWinner != 0 && !isSpectator" class="flex space-x-2 text-2xl">
       <span class="mr-2">Game over -</span>
       <span v-show="(gameWinner == 1) == (playerSymbol == 'X')" class="text-blue-600">You Won!</span>
       <span v-show="(gameWinner == 1) != (playerSymbol == 'X')" class="text-red-500">You Lost!</span>
+    </div>
+    <div v-if="isRunning && gameWinner != 0 && isSpectator" class="flex space-x-2 text-2xl">
+      <span class="mr-2">Game over -</span>
+      <span v-show="gameWinner == 2" class="text-blue-600">Blue Won!</span>
+      <span v-show="gameWinner == 1" class="text-red-500">Red Won!</span>
     </div>
 
     <div
