@@ -31,7 +31,7 @@ onMounted(async () => {
   }
 })
 
-const glob = import.meta.glob('@/assets/memory/images/*.webp', { eager: true });
+const glob = import.meta.glob('@/assets/memory/small/*.jpg', { eager: true });
 const images = Object.fromEntries(
   Object.entries(glob).map(([key, value]) => [filename(key), value.default])
 );
@@ -89,7 +89,7 @@ defineExpose({flip, temporaryFlip, isLocked});
   >
     <div class="flip-card-inner">
       <div class="flip-card-front">
-        <img src="@/assets/memory/images/0.webp" alt="Avatar" class="w-full h-full" />
+        <img src="@/assets/memory/small/0.jpg" alt="Avatar" class="w-full h-full" />
       </div>
       <div class="flip-card-back bg-blue">
         <img :src="images[imageNumber]" alt="image" class="w-full h-full" />
