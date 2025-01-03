@@ -15,7 +15,6 @@ let flipLock = false;
 watch(
   () => props.imgNum,
   async () => {
-    console.log("imgNum changed!", props.imgNum);
     imageNumber.value = props.imgNum;
     // await nextTick otherwise the flip animation is broken
     await nextTick()
@@ -46,7 +45,6 @@ function flip() {
     cardRef.value.classList.remove("custom-border-");
   } else {
     cardRef.value.classList.add("rotated");
-    console.log("setting class: custom-border-" + props.border)
     cardRef.value.classList.add("custom-border-" + props.border);
   }
 }
