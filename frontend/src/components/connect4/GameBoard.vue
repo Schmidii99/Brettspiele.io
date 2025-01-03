@@ -19,12 +19,12 @@ function getColor(value: number): string {
 
 <template>
   <div class="flex flex-col justify-center items-center">
-  <div class="flex flex-row p-4 lg:block hidden"> 
+  <div class="hidden flex-row p-4 lg:flex">
     <GameChip v-for="n in 7" :key="n" :class="'w-16 aspect-square mx-2 ' + (hoverArray[n - 1] == 0 ? 'invisible' : 'visible')" />
   </div>
   <div v-if="board" class="flex flex-row bg-gray-500 w-fit rounded-2xl p-4">
-    <div  v-for="c, c_index in (board[0] || []).length" 
-          :key="c_index" 
+    <div  v-for="(c, c_index) in (board[0] || []).length"
+          :key="c_index"
           @click="onClick!(c_index)"
           class="hover:cursor-pointer"
           @mouseover="hoverArray[c_index] = 1"
