@@ -67,7 +67,7 @@ function afterConnect() {
       revealCard(el.index, el.value)
     });
     myTurn.value = !myTurn.value;
-  })
+  });
 
   // send gameInfo to server
   socket.emit('gameInfo', {
@@ -169,8 +169,25 @@ function checkAndSetWinner() {
       return;
     }
   }
+  if (scores.value[0] == scores.value[1]) {
+    gameWinner.value = 3;
+  } else {
+    gameWinner.value = scores.value[0] > scores.value[1] ? 1 : 2;
+  }
+}
 
-  gameWinner.value = scores.value[0] > scores.value[1] ? 1 : 2;
+async function playAgain() {
+  const currentId: string = route.params['gameid'] as string
+  const shuffle =
+    'ok94Hyf3gpTuzODSC1bdeGVUYqaFZM0rLtJxwjEK27X6QWANBcvmi5nPhlRIs8'
+  let newId = ''
+  currentId.split('').forEach((char: string) => {
+    newId += shuffle[(shuffle.indexOf(char) + 1) % 62]
+  })
+
+  await currentRouter.replace('/memory/' + newId)
+  await new Promise(f => setTimeout(f, 1))
+  location.reload()
 }
 </script>
 
@@ -193,15 +210,20 @@ function checkAndSetWinner() {
       <span>-</span>
       <span class="text-blue-600">{{scores[1]}}</span>
     </div>
-    <div v-show="isRunning && gameWinner != 0 && !isSpectator" class="flex space-x-2 text-2xl">
-      <span class="mr-2">Game over -</span>
-      <span v-show="(gameWinner == 1) == (playerSymbol == 'X')" class="text-blue-600">You Won!</span>
-      <span v-show="(gameWinner == 1) != (playerSymbol == 'X')" class="text-red-500">You Lost!</span>
+    <div v-show="isRunning && gameWinner != 0 && !isSpectator" class="flex flex-col">
+      <div class="flex space-x-2 text-2xl">
+        <span class="mr-2">Game over -</span>
+        <span v-if="(gameWinner == 1) == (playerSymbol == 'X') && gameWinner!=3" class="text-green-600">You Won!</span>
+        <span v-if="(gameWinner == 1) != (playerSymbol == 'X') && gameWinner != 3" class="text-red-500">You Lost!</span>
+        <span v-if="gameWinner == 3">Draw!</span>
+      </div>
+      <SimpleButton @click="playAgain"> Play Again </SimpleButton>
     </div>
     <div v-if="isRunning && gameWinner != 0 && isSpectator" class="flex space-x-2 text-2xl">
       <span class="mr-2">Game over -</span>
-      <span v-show="gameWinner == 2" class="text-blue-600">Blue Won!</span>
-      <span v-show="gameWinner == 1" class="text-red-500">Red Won!</span>
+      <span v-show="gameWinner == 2">Blue Won!</span>
+      <span v-show="gameWinner == 1">Red Won!</span>
+      <span v-show="gameWinner == 3">Draw!</span>
     </div>
 
     <div
