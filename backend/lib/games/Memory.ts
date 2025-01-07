@@ -105,6 +105,8 @@ async function makeMove(info: {gameType: string, gameId: string}, index1: number
         if (checkForWin(game.gameState.state, game.gameState.scores[0], game.gameState.scores[1]) != 0) {
             await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.gameState.gameStatus`, "ended");
         }
+
+        game.gameState.currentTurn = "" + hashString(game.currentTurn);
         await publishGameState(info.gameType, info.gameId, game.gameState);
     } else {
         // the clicked pair is not the same card
