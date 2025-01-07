@@ -106,8 +106,8 @@ function onClick(index: number) {
   // if is not my turn then no highlight
   if (myTurn.value == null || !myTurn.value) { return; }
 
-  // check if card is locked (locked = temp flip currently done)
-  if (cardRefs.value[index].isLocked()) {
+  // check if card is locked (locked = temp flip currently done) or card is already revealed
+  if (cardRefs.value[index].isLocked() || board.value.state[index] != 0) {
     return;
   }
 
