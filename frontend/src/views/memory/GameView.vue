@@ -8,6 +8,8 @@ import { openSocket } from '@/lib/socketManager'
 import { useRoute, useRouter } from 'vue-router'
 import type { Socket } from 'socket.io-client'
 import FlipCard from '@/components/memory/FlipCard.vue'
+import { useSessionStore } from '@/stores/sessionStore'
+import { hashString } from '@/components/helper'
 
 const route = useRoute()
 const currentRouter = useRouter()
@@ -29,8 +31,11 @@ const board = ref({
 const highlighted = ref([])
 // refs to all cards in dom
 const cardRefs = useTemplateRef('cards')
+const hashedSession = ref("")
 
 onMounted(async () => {
+  const sessionStore = useSessionStore();
+  hashedSession.value = hashString(sessionStore.session);
   // validate game id
   const gameId: string = route.params['gameid'] as string
   if (
@@ -76,16 +81,14 @@ function afterConnect() {
   })
 }
 
-function gameStateUpdate(update: { gameStatus: string, state: Array<number>, scores: Array<number | Array<number>>, yourTurn: boolean }) {
+function gameStateUpdate(update: { gameStatus: string, state: Array<number>, scores: Array<number | Array<number>>, currentTurn: string }) {
   // check if other size is selected
   if (update.state.length != board.value.state.length) {
     n.value = Math.sqrt(update.state.length);
     board.value.state = Array.from({ length: update.state.length }, () => 0);
   }
 
-  if (myTurn.value == null) {
-    myTurn.value = update.yourTurn;
-  }
+  myTurn.value = hashedSession.value == update.currentTurn;
 
   isRunning.value = true
   for (let i = 0; i < update.state.length; i++) {
@@ -273,7 +276,7 @@ async function playAgain() {
           ref="cards"
           :key="j"
           :size="widths[n]"
-          :highlighted="highlighted.indexOf((i - 1) * n + j - 1) != -1"
+          :highlighted="(highlighted.indexOf((i - 1) * n + j - 1) != -1)"
           @click="onClick((i - 1) * n + j - 1)"
           :img-num="'' + board.state[(i - 1) * n + j - 1]"
           :border="getBorder((i - 1) * n + j - 1)"

@@ -1,5 +1,5 @@
 import {addPlayer, disconnectPlayer, getGame, redisClient} from "../DatabaseManager.ts";
-import {getRandomInt} from "../helper.ts";
+import {getRandomInt, hashString} from "../helper.ts";
 import * as log from "log";
 import {processChatChange} from "../../main.ts";
 import { type Socket } from "socket_io";
@@ -65,7 +65,7 @@ export async function initMemory(info: { gameType: string; gameId: string }, soc
     await subscriber.subscribe(`${info.gameType}:${info.gameId}:reveal`, (msg: string, _channel: string) => {socket.emit("revealCards", msg)});
 
     if (game.gameState.gameStatus === "running") {
-        game.gameState.yourTurn = game.currentTurn == session;
+        game.gameState.currentTurn = "" + hashString(game.currentTurn);
         await publishGameState(info.gameType, info.gameId, game.gameState);
     }
 }
@@ -105,6 +105,7 @@ async function makeMove(info: {gameType: string, gameId: string}, index1: number
         if (checkForWin(game.gameState.state, game.gameState.scores[0], game.gameState.scores[1]) != 0) {
             await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.gameState.gameStatus`, "ended");
         }
+        await publishGameState(info.gameType, info.gameId, game.gameState);
     } else {
         // the clicked pair is not the same card
         await redisClient.publish(`${info.gameType}:${info.gameId}:reveal`, JSON.stringify([
@@ -119,9 +120,6 @@ async function makeMove(info: {gameType: string, gameId: string}, index1: number
         // set next player
         await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.currentTurn`, allSessions[nextPlayerIndex]);
     }
-
-    // publish gamestate
-    await redisClient.publish(`${info.gameType}:${info.gameId}:gamestate`, JSON.stringify(game.gameState));
 }
 
 function checkForWin(board: Array<number>, score1: number, score2: number): number {
