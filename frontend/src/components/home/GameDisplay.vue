@@ -21,7 +21,7 @@
         <button v-if="!disabled" @click="() => redirect()" class="mt-3 inline-block bg-blue-500 border-blue-500 border-2 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300">
             Play Now
         </button>
-        <a v-if="!disabled" href="/connect4" 
+        <a v-if="!disabled" :href="baseLink"
             class="ml-2 mt-3 inline-block bg-white border-blue-500 border-2 text-blue-500 hover:bg-blue-500 hover:text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300">
             How To Play
         </a>
