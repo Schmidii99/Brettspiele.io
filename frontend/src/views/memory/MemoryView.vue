@@ -11,6 +11,7 @@ function myButtonClick() {
 </script>
 
 <template>
+  <div>
   <div class="w-full h-full flex justify-center items-center p-4 flex-col overflow-auto">
     <div class="mb-5 text-center">
       <h1 class="text-5xl font-bold text-blue-800 my-4">Play Memory</h1>
@@ -19,7 +20,7 @@ function myButtonClick() {
     <SimpleButton @click="myButtonClick">
       Create new Game
     </SimpleButton>
-    <div class="bg-white p-6 rounded-lg shadow-md mt-16 flex flex-col">
+    <div class="bg-white p-6 rounded-lg shadow-md mt-16 flex flex-col overflow-auto">
       <h2 class="text-2xl font-bold mb-6">How to Play Memory</h2>
       <h2 class="text-lg font-bold">Game Setup</h2>
       <ol class="list-disc list-inside space-y-2">
@@ -41,5 +42,5 @@ function myButtonClick() {
       </p>
     </div>
   </div>
-
+  </div>
 </template>
