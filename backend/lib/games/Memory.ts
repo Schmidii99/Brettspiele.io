@@ -65,14 +65,18 @@ export async function initMemory(info: { gameType: string; gameId: string }, soc
     await subscriber.subscribe(`${info.gameType}:${info.gameId}:reveal`, (msg: string, _channel: string) => {socket.emit("revealCards", msg)});
 
     if (game.gameState.gameStatus === "running") {
-        game.gameState.currentTurn = "" + hashString(game.currentTurn);
-        await publishGameState(info.gameType, info.gameId, game.gameState);
+        await publishGameState(info.gameType, info.gameId);
     }
 }
 
-async function publishGameState(gameType: string, gameId: string, state: any) {
+async function publishGameState(gameType: string, gameId: string) {
+    const game = await getGame(gameType, gameId);
+    if (game == null) { return; }
+
+    game.gameState.currentTurn = "" + hashString(game.currentTurn);
+
     // publish game state to all players
-    await redisClient.publish(`${gameType}:${gameId}:gamestate`, JSON.stringify(state));
+    await redisClient.publish(`${gameType}:${gameId}:gamestate`, JSON.stringify(game.gameState));
 }
 
 async function makeMove(info: {gameType: string, gameId: string}, index1: number, index2: number, session: string, socket: Socket) {
@@ -106,8 +110,7 @@ async function makeMove(info: {gameType: string, gameId: string}, index1: number
             await redisClient.json.set(`${info.gameType}:${info.gameId}`, `$.gameState.gameStatus`, "ended");
         }
 
-        game.gameState.currentTurn = "" + hashString(game.currentTurn);
-        await publishGameState(info.gameType, info.gameId, game.gameState);
+        await publishGameState(info.gameType, info.gameId);
     } else {
         // the clicked pair is not the same card
         await redisClient.publish(`${info.gameType}:${info.gameId}:reveal`, JSON.stringify([
