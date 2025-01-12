@@ -2,7 +2,7 @@
 import { generateRandomString, getFullLink } from '@/lib/helper'
 import LinkDisplay from '@/components/games/LinkDisplay.vue'
 import SimpleButton from '@/components/SimpleButton.vue'
-import { onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
+import { onMounted, onUnmounted, type Ref, ref, useTemplateRef } from 'vue'
 import { MAX_GAME_ID_LEN } from '@/config'
 import { openSocket } from '@/lib/socketManager'
 import { useRoute, useRouter } from 'vue-router'
@@ -14,16 +14,16 @@ import { hashString } from '@/components/helper'
 const route = useRoute()
 const currentRouter = useRouter()
 // css properties for different board sizes
-const widths = { 6: 'md:w-24 w-12', 8: 'md:w-20 w-10', 10: 'md:w-16 w-4' }
+const widths: {[index: number]: string} = { 6: 'md:w-24 w-12', 8: 'md:w-20 w-10', 10: 'md:w-16 w-4' }
 // represents side length of board
 const n = ref(8)
 const isRunning = ref(false)
 let socket: null | Socket
-const myTurn = ref(null)
+const myTurn: Ref<null | boolean> = ref(null)
 const isSpectator = ref(false)
 const playerSymbol = ref('')
 const gameWinner = ref(0)
-const scores = ref([0, 0, [], []])
+const scores: Ref<Array<number | Array<number>>> = ref([0, 0, [], []])
 const board = ref({
   state: Array.from({ length: n.value * n.value }, () => 0),
 })
@@ -31,7 +31,7 @@ const board = ref({
 const highlighted = ref([])
 // refs to all cards in dom
 const cardRefs = useTemplateRef('cards')
-const hashedSession = ref("")
+const hashedSession = ref(0)
 
 onMounted(async () => {
   const sessionStore = useSessionStore();
@@ -66,8 +66,8 @@ function afterConnect() {
       myTurn.value = playerSymbol.value == 'X'
     }
   })
-  socket.on('revealCards', (args: Array<{ index: number; value: number }>) => {
-    args = JSON.parse(args)
+  socket.on('revealCards', (input: string) => {
+    const args: Array<{ index: number; value: number }> = JSON.parse(input) as Array<{ index: number; value: number }>;
     args.forEach((el: { index: number; value: number }) => {
       revealCard(el.index, el.value)
     });
@@ -81,7 +81,7 @@ function afterConnect() {
   })
 }
 
-function gameStateUpdate(update: { gameStatus: string, state: Array<number>, scores: Array<number | Array<number>>, currentTurn: string }) {
+function gameStateUpdate(update: { gameStatus: string, state: Array<number>, scores: Array<number | Array<number>>, currentTurn: number }) {
   // check if other size is selected
   if (update.state.length != board.value.state.length) {
     n.value = Math.sqrt(update.state.length);
@@ -104,14 +104,16 @@ function gameStateUpdate(update: { gameStatus: string, state: Array<number>, sco
 
 function onClick(index: number) {
   // if is not my turn then no highlight
-  if (myTurn.value == null || !myTurn.value) { return; }
+  if (myTurn.value == null || !myTurn.value || cardRefs.value == null) { return; }
+
+  if (cardRefs.value[index] == null) { return; }
 
   // check if card is locked (locked = temp flip currently done) or card is already revealed
   if (cardRefs.value[index].isLocked() || board.value.state[index] != 0) {
     return;
   }
 
-  const arrayIndex = highlighted.value.indexOf(index)
+  const arrayIndex = (highlighted.value as Array<number>).indexOf(index)
   if (arrayIndex > -1) {
     if (index !== -1) {
       highlighted.value.splice(arrayIndex, 1)
@@ -120,9 +122,10 @@ function onClick(index: number) {
     // check if 2 are highlighted
     if (highlighted.value.length >= 1) {
       const secondIndex = highlighted.value.pop()
+      if (secondIndex == undefined) { return; }
       sendCLick(index, secondIndex)
     } else {
-      highlighted.value.push(index)
+      (highlighted.value as Array<number>).push(index)
     }
   }
 }
@@ -150,16 +153,18 @@ function changeBoardSize() {
 }
 
 async function revealCard(index: number, img: number) {
+  if (cardRefs.value == null || cardRefs.value[index] == null) { return; }
+
   // intentionally not awaited
-  cardRefs.value[index].temporaryFlip(img)
+  cardRefs.value[index].temporaryFlip('' + img)
 }
 
 function getBorder(index: number) {
   const value = board.value.state[index];
-  if (scores.value[2].indexOf(value) != -1) {
+  if ((scores.value[2] as Array<number>).indexOf(value) != -1) {
     return "red";
   }
-  if (scores.value[3].indexOf(value) != -1) {
+  if ((scores.value[3] as Array<number>).indexOf(value) != -1) {
     return "blue";
   }
   return "";
@@ -276,7 +281,7 @@ async function playAgain() {
           ref="cards"
           :key="j"
           :size="widths[n]"
-          :highlighted="(highlighted.indexOf((i - 1) * n + j - 1) != -1)"
+          :highlighted="((highlighted as Array<number>).indexOf((i - 1) * n + j - 1) != -1)"
           @click="onClick((i - 1) * n + j - 1)"
           :img-num="'' + board.state[(i - 1) * n + j - 1]"
           :border="getBorder((i - 1) * n + j - 1)"

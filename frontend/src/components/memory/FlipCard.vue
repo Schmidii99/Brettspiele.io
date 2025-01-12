@@ -23,7 +23,7 @@ watch(
 );
 
 onMounted(async () => {
-  if (props.imgNum != 0) {
+  if (props.imgNum != '0') {
     setTimeout(function(){
       flip();
     }, 300);
@@ -32,11 +32,12 @@ onMounted(async () => {
 
 const glob = import.meta.glob('@/assets/memory/small/*.jpg', { eager: true });
 const images = Object.fromEntries(
-  Object.entries(glob).map(([key, value]) => [filename(key), value.default])
+  Object.entries(glob).map(([key, value]) => {return [filename(key), (value as {default: string}).default]})
 );
 
 function flip() {
   if (flipLock) return;
+  if (cardRef.value == null) return;
 
   if (cardRef.value.classList.contains("rotated")) {
     cardRef.value.classList.remove("rotated");
@@ -49,12 +50,14 @@ function flip() {
   }
 }
 
-const cardRef = ref<HTMLDivElement>(null);
+const cardRef = ref<HTMLElement | null>(null);
 
-async function temporaryFlip(imgNumber: number) {
+async function temporaryFlip(imgNumber: string) {
   flipLock = true;
-  const oldImg: number = imageNumber.value;
+  const oldImg: string = imageNumber.value;
   imageNumber.value = imgNumber;
+
+  if (cardRef.value == null) return;
 
   if (cardRef.value.classList.contains("rotated")) {
     cardRef.value.classList.remove("rotated");
@@ -81,7 +84,7 @@ defineExpose({flip, temporaryFlip, isLocked});
 
 <template>
   <div :class="'bg-transparent flip-card aspect-square '
-               + (imgNum == 0 ? ' hover:cursor-pointer hover:scale-110 ' : ' ')
+               + (imgNum == '0' ? ' hover:cursor-pointer hover:scale-110 ' : ' ')
                + size + (highlighted ? ' highlighted ' : ' ')"
        ref="cardRef"
   >

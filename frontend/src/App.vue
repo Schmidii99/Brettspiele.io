@@ -1,15 +1,15 @@
-<script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import Navbar from "@/components/Navbar.vue";
-import { onMounted } from 'vue';
-import { useSessionStore } from './stores/sessionStore';
-import { generateUUID } from './lib/helper';
+<script setup >
+import { RouterView } from 'vue-router'
+import { onMounted } from 'vue'
+import { useSessionStore } from './stores/sessionStore'
+import { generateUUID } from './lib/helper'
+import Navbar from '@/components/Navbar.vue'
 
 onMounted(() => {
-  let store = useSessionStore();
+  const store = useSessionStore()
   // initialize session cookie
-  if (store.session === "") {
-    store.session = generateUUID();
+  if (store.session === '') {
+    store.session = generateUUID()
   }
 })
 </script>
