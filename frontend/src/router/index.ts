@@ -42,6 +42,9 @@ const router = createRouter({
         return { path: '/memory/' + to.params.gameid }
       },
     },
+    { path: '/skillcheck/', name: 'How To Play Skill Check Game', component: () => import('@/views/skillcheck/InfoPage.vue'), },
+    { path: '/skillcheck/sp', name: 'Play Skill Check Training', component: () => import('@/views/skillcheck/SinglePlayer.vue'), },
+    { path: '/skillcheck/mp/:gameid', name: 'Play Skill Check Duel', component: () => import('@/views/skillcheck/MultiPlayer.vue'), },
     { path: '/:pathMatch(.*)*', name: '404 Not Found', component: () => import("@/views/PageNotFoundView.vue"), },
   ],
 })
