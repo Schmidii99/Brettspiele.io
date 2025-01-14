@@ -112,15 +112,15 @@ defineExpose({stopSpin, slowSpin, mediumSpin, fastSpin, hide, show});
     animation-timing-function: linear;
   }
   @-moz-keyframes spin {
-    from { -moz-transform: rotate(0deg); }
-    to { -moz-transform: rotate(360deg); }
+    from { -moz-transform: rotate(270deg); }
+    to { -moz-transform: rotate(630deg); }
   }
   @-webkit-keyframes spin {
-    from { -webkit-transform: rotate(0deg); }
-    to { -webkit-transform: rotate(360deg); }
+    from { -webkit-transform: rotate(270deg); }
+    to { -webkit-transform: rotate(630deg); }
   }
   @keyframes spin {
-    from {transform:rotate(0deg);}
-    to {transform:rotate(360deg);}
+    from {transform:rotate(270deg);}
+    to {transform:rotate(630deg);}
   }
 </style>
