@@ -4,7 +4,7 @@ import InnerCircle from '@/components/skillcheck/InnerCircle.vue'
 import Pointer from '@/components/skillcheck/SkillCheckPointer.vue'
 import { ref } from 'vue'
 import HitZone from '@/components/skillcheck/HitZone.vue'
-import { getRandomInt } from '@/lib/helper'
+import { getCurrentRotation, getRandomInt } from '@/lib/helper'
 
 const pointerRef = ref(null);
 const hitZoneRef = ref(null);
@@ -12,7 +12,7 @@ const hitZoneRef = ref(null);
 function startSpinning() {
   if (!pointerRef.value) { return; }
 
-  pointerRef.value.mediumSpin();
+  pointerRef.value.slowSpin();
 }
 
 function stopSpinning() {
@@ -33,10 +33,25 @@ function getHitZoneRotation(): null | number {
   if (hitZoneRef.value == null) { return null; }
   const transform: string | null = hitZoneRef.value.style["transform"];
   if (transform == null) { return null; }
+  if (transform == "") { return 0; }
   return parseInt(transform.split(")")[0].split("(")[1].split("deg")[0]);
 }
 
-defineExpose({});
+function getPointerRotation() {
+  return getCurrentRotation(pointerRef.value.$el);
+}
+
+function isPointerOnHitZone(): boolean {
+  const pointerRotation = getPointerRotation();
+  const hitZoneRotation = (getHitZoneRotation() + 180 + 15) % 360;
+  // hitZone is 30°
+  return pointerRotation - hitZoneRotation <= 30 && pointerRotation - hitZoneRotation > 0;
+}
+
+defineExpose(
+  { startSpinning, stopSpinning, rotateHitzone,
+            rotateHitzoneRandom, getHitZoneRotation, isPointerOnHitZone
+  });
 </script>
 
 <template>
