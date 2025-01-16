@@ -95,13 +95,13 @@ defineExpose({stopSpin, slowSpin, mediumSpin, fastSpin, hide, show});
   }
   .medium-speed {
     animation-name: spin;
-    animation-duration: 1000ms;
+    animation-duration: 2000ms;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
   }
   .fast-speed {
     animation-name: spin;
-    animation-duration: 500ms;
+    animation-duration: 1000ms;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
   }
