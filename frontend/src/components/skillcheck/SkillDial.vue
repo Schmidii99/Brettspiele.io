@@ -9,10 +9,22 @@ import { getCurrentRotation, getRandomInt } from '@/lib/helper'
 const pointerRef = ref(null);
 const hitZoneRef = ref(null);
 
-function startSpinning() {
+function startSpinning(level: string) {
   if (!pointerRef.value) { return; }
+  pointerRef.value.stopSpin();
 
-  pointerRef.value.slowSpin();
+  switch (level) {
+    case "medium":
+      pointerRef.value.mediumSpin();
+      break;
+    case "fast":
+      pointerRef.value.fastSpin();
+      break;
+    case "slow":
+    default:
+      pointerRef.value.slowSpin();
+      break;
+  }
 }
 
 function stopSpinning() {
@@ -22,7 +34,7 @@ function stopSpinning() {
 }
 
 function rotateHitzoneRandom() {
-  hitZoneRef.value.style["transform"] = "rotate("+ getRandomInt(165, 300) +"deg)";
+  hitZoneRef.value.style["transform"] = "rotate("+ getRandomInt(0, 360) +"deg)";
 }
 
 function rotateHitzone(degree: number) {
@@ -43,9 +55,12 @@ function getPointerRotation() {
 
 function isPointerOnHitZone(): boolean {
   const pointerRotation = getPointerRotation();
-  const hitZoneRotation = (getHitZoneRotation() + 180 + 15) % 360;
+  const hitZoneRotation = (getHitZoneRotation() + 180 - 15) % 360;
   // hitZone is 30°
-  return pointerRotation - hitZoneRotation <= 30 && pointerRotation - hitZoneRotation > 0;
+  if (!(pointerRotation - hitZoneRotation <= 30 && pointerRotation - hitZoneRotation > 0)) {
+    console.log("Fail! - pointer rotation: " + pointerRotation + "° hitzone: " + hitZoneRotation + "°");
+  }
+  return (pointerRotation - hitZoneRotation <= 30 && pointerRotation - hitZoneRotation >= 0) || (pointerRotation - hitZoneRotation >= -360 && pointerRotation - hitZoneRotation <= -330);
 }
 
 defineExpose(
