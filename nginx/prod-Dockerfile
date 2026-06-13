@@ -14,5 +14,9 @@ COPY ./nginx/certs/floslabs.de.key /etc/nginx/certs/floslabs.de.key
 COPY ./nginx/certs/floslabs.de.pem /etc/nginx/certs/floslabs.de.pem
 COPY ./nginx/certs/cloudflare.crt /etc/nginx/certs/cloudflare.crt
 
+COPY ./nginx/flo1.config /etc/nginx/conf.d/flo1.de.conf
+COPY ./nginx/certs/flo1.de.key /etc/nginx/certs/flo1.de.key
+COPY ./nginx/certs/flo1.de.pem /etc/nginx/certs/flo1.de.pem
+
 EXPOSE 80
 EXPOSE 443

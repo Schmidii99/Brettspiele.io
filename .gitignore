@@ -1,0 +1,4 @@
+redis-data/
+frontend/dist/
+**/node_modules/
+nginx/certs/

@@ -1,3 +1,3 @@
 #!/bin/sh
 
-docker compose -f prod-Dockerfile up --build
+docker compose -f prod-compose.yaml up --build
