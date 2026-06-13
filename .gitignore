@@ -2,3 +2,6 @@ redis-data/
 frontend/dist/
 **/node_modules/
 nginx/certs/
+**/.vscode/
+**/*.lock
+backend/backend.log
