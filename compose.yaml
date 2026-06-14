@@ -1,6 +1,9 @@
 networks:
   floslabs:
     driver: bridge
+  cloudflare_tunnel:
+    driver: bridge
+    external: true
 
 services:
   redis:
@@ -41,12 +44,14 @@ services:
           cpus: '0.25'
           memory: 128M
     restart: on-failure
+    volumes:
+      - ${PWD}/nginx/prod:/etc/nginx/conf.d/
     build:
       context: ./
-      dockerfile: ./nginx/prod-Dockerfile
+      dockerfile: ./nginx/Dockerfile
     depends_on:
     - backend
     networks:
       - floslabs
-
+      - cloudflare_tunnel
 

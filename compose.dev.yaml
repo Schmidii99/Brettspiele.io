@@ -3,10 +3,11 @@ include:
 
 services:
   nginx:
-    build:
-      context: ./
-      dockerfile: nginx/dev-Dockerfile
     ports:
       - '80:80'
     volumes:
       - ${PWD}/nginx/dev:/etc/nginx/conf.d/
+
+networks:
+  cloudflare_tunnel:
+    external: false
